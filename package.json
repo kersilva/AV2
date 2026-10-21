@@ -1,0 +1,23 @@
+{
+  "name": "greencode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "test:journey": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/jornada-cli.js",
+    "test:journal": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/falhas-journal.js",
+    "test:security": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/seguranca.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

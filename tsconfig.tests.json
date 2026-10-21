@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "rootDir": "./tests",
+    "outDir": "./dist-tests",
+    "module": "nodenext",
+    "target": "esnext",
+    "types": ["node"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": false
+  },
+  "include": ["tests/**/*.ts"]
+}
