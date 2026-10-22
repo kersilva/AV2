@@ -6,6 +6,14 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# client gerado pelo Prisma (recriado com `npx prisma generate`)
+src/generated/prisma/
+
+# pastas de ferramentas de IA/editor
+.agents/
+.claude/
+.windsurf/
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
@@ -143,3 +151,5 @@ data/
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+/src/generated/prisma
