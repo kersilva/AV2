@@ -1,3 +1,5 @@
+// monta e inicia a aplicação de terminal. Só pode sair depois que o main.ts iniciar o servidor Fastify
+
 import { readFile, unlink } from "node:fs/promises";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";

@@ -1,3 +1,5 @@
+// faz o provisionamento e a segurança específicos do terminal. Sai quando o fluxo de usuário e autenticação da API estiver implementado; aproveitamos as regras úteis, não necessariamente esse arquivo.
+
 import { createHash, randomBytes } from "node:crypto";
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";

@@ -1,3 +1,5 @@
+//só interpreta comandos e faz autocomplete. Pode ser removido quando o executor do CLI sair
+
 import { PapelUsuario } from "../domain/enums/PapelUsuario.js";
 
 interface DefinicaoComando {

@@ -1,3 +1,5 @@
+// lê e salva dados nos arquivos cifrados. Sai quando Prisma assumir a persistência; antes, pode servir de referência para entender os dados antigos.
+
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { Contrato } from "../domain/entities/Contrato.js";

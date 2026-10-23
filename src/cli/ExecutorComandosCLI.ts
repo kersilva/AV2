@@ -1,3 +1,5 @@
+// encaminha comandos para os serviços. A API não vai usá-lo, mas vale consultá-lo como lista dos fluxos e permissões existentes antes de removê-lo.
+
 import { Contrato } from "../domain/entities/Contrato.js";
 import { randomUUID } from "node:crypto";
 import { Equipamento } from "../domain/entities/Equipamento.js";
