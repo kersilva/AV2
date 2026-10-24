@@ -3,7 +3,7 @@ import {
   ErroValidacao,
   OrganizacaoService,
   type NovaOrganizacao,
-} from "../services/OrganizacaoService.js";
+} from "@organizacao/OrganizacaoService.js";
 
 export async function OrganizacaoController(
   app: FastifyInstance,

@@ -1,6 +1,6 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import type { PapelUsuario } from "../generated/prisma/enums.js";
-import { UsuarioService } from "../services/UsuarioService.js";
+import type { PapelUsuario } from "@/generated/prisma/enums.js";
+import { UsuarioService } from "@usuario/UsuarioService.js";
 
 export async function UsuarioController(
   app: FastifyInstance,

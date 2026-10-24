@@ -1,5 +1,5 @@
-import type { Prisma } from "../generated/prisma/client.js";
-import { prisma } from "../infrastructure/database.js";
+import type { Prisma } from "@/generated/prisma/client.js";
+import { prisma } from "@infra/database.js";
 
 export class EquipamentoRepository {
   criar(dados: Prisma.EquipamentoUncheckedCreateInput) {

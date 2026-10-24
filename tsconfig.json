@@ -15,6 +15,26 @@
     // "types": ["node"],
     // and npm install -D @types/node
 
+    "paths": {
+      "@/*": ["./src/*"],
+      
+      // Src
+      "@infra/*": ["./src/infrastructure/*"],
+
+      // Domain
+      "@domain/*": ["./src/domain/*"],
+      
+      // Modules
+      "@autenticacao/*": ["./src/modules/autenticacao/*"],
+      "@configuracao/*": ["./src/modules/configuracao/*"],
+      "@equipamento/*": ["./src/modules/equipamento/*"],
+      "@journal/*": ["./src/modules/journal/*"],
+      "@lote/*": ["./src/modules/lote/*"],
+      "@organizacao/*": ["./src/modules/organizacao/*"],
+      "@relatorio/*": ["./src/modules/relatorio/*"],
+      "@usuario/*": ["./src/modules/usuario/*"],
+    },
+
     // Other Outputs
     "sourceMap": true,
     "declaration": true,
@@ -38,7 +58,7 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "dist-tests", "node_modules", "tests"]

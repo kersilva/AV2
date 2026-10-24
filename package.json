@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "tsx src/main.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "start": "node dist/main.js",
     "test:journey": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/jornada-cli.js",
     "test:journal": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/falhas-journal.js",

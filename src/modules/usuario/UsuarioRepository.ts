@@ -1,5 +1,5 @@
-import type { PapelUsuario } from "../generated/prisma/enums.js";
-import { prisma } from "../infrastructure/database.js";
+import type { PapelUsuario } from "@/generated/prisma/enums.js";
+import { prisma } from "@infra/database.js";
 
 const usuarioSeguro = {
   id: true, usuario: true, papel: true, ativo: true, ultimoAcesso: true, versao: true,

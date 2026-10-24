@@ -1,4 +1,4 @@
-import type { PapelUsuario } from "../generated/prisma/enums.js";
+import type { PapelUsuario } from "@/generated/prisma/enums.js";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {

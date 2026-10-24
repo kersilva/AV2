@@ -1,6 +1,6 @@
-import type { EstadoFisico, StatusRastreamento, TipoEquipamento } from "../generated/prisma/enums.js";
-import type { Prisma } from "../generated/prisma/client.js";
-import { EquipamentoRepository } from "../repositories/EquipamentoRepository.js";
+import type { EstadoFisico, StatusRastreamento, TipoEquipamento } from "@/generated/prisma/enums.js";
+import type { Prisma } from "@/generated/prisma/client.js";
+import { EquipamentoRepository } from "@equipamento/EquipamentoRepository.js";
 
 export type NovoEquipamento = {
   id: string; codigoBarrasInterno: string; tipo: TipoEquipamento; marca: string;

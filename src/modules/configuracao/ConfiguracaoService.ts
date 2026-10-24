@@ -1,4 +1,4 @@
-import { ConfiguracaoRepository } from "../repositories/ConfiguracaoRepository.js";
+import { ConfiguracaoRepository } from "@configuracao/ConfiguracaoRepository.js";
 
 export type DadosConfiguracao = {
   aliquotaImposto: number;

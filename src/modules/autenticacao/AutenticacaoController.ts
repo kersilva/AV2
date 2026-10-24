@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
-import { ServicoAutenticacao } from "../services/AutenticacaoService.js";
+import { ServicoAutenticacao } from "@autenticacao/AutenticacaoService.js";
 
 function confereToken(recebido: string, esperado: string): boolean {
   const a = Buffer.from(recebido);
@@ -38,7 +38,7 @@ export async function AutenticacaoController(
       }
 
       try {
-        const usuario = await service.criarPrimeiroAdministrador(req.body);
+        const usuario = await service.criarPrimeiroAdmin(req.body);
         return res.code(201).send({ id: usuario.id, usuario: usuario.usuario, papel: usuario.papel });
       } catch (erro) {
         if (erro instanceof Error && erro.message === "A configuração inicial já foi concluída.") {

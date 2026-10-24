@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { Prisma } from "../generated/prisma/client.js";
-import { JournalTransacao } from "../domain/entities/JournalTransacao.js";
-import { JournalRepository } from "../repositories/JournalRepository.js";
+import type { Prisma } from "@/generated/prisma/client.js";
+import { JournalTransacao } from "@domain/entities/JournalTransacao.js";
+import { JournalRepository } from "@journal/JournalRepository.js";
 
 export type NovaTransacaoJournal = {
   id?: string;

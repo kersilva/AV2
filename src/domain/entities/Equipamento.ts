@@ -1,6 +1,6 @@
-import { EstadoFisico } from "../enums/EstadoFisico.js";
-import { StatusRastreamento } from "../enums/StatusRastreamento.js";
-import { TipoEquipamento } from "../enums/TipoEquipamento.js";
+import { EstadoFisico } from "@domain/enums/EstadoFisico.js";
+import { StatusRastreamento } from "@domain/enums/StatusRastreamento.js";
+import { TipoEquipamento } from "@domain/enums/TipoEquipamento.js";
 import { Movimentacao } from "./Movimentacao.js";
 
 export class Equipamento {

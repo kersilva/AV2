@@ -1,5 +1,5 @@
-import type { StatusRastreamento } from "../generated/prisma/enums.js";
-import { RelatorioRepository } from "../repositories/RelatorioRepository.js";
+import type { StatusRastreamento } from "@/generated/prisma/enums.js";
+import { RelatorioRepository } from "@relatorio/RelatorioRepository.js";
 
 export type PeriodoRelatorio = { inicio?: Date; fim?: Date };
 

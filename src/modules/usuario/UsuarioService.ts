@@ -1,6 +1,6 @@
-import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
-import { criarHashSenha } from "../infrastructure/senha.js";
-import type { PapelUsuario } from "../generated/prisma/enums.js";
+import { UsuarioRepository } from "@usuario/UsuarioRepository.js";
+import { criarHashSenha } from "@infra/senha.js";
+import type { PapelUsuario } from "@/generated/prisma/enums.js";
 
 export class UsuarioService {
   constructor(private readonly repository = new UsuarioRepository()) {}

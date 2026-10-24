@@ -1,5 +1,5 @@
-import type { PapelUsuario } from "../generated/prisma/enums.js";
-import { prisma } from "../infrastructure/database.js";
+import type { PapelUsuario } from "@/generated/prisma/enums.js";
+import { prisma } from "@infra/database.js";
 
 export class AutenticacaoRepository {
   buscarPorUsuario(usuario: string) {

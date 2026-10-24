@@ -1,4 +1,4 @@
-import { StatusLote } from "../enums/StatusLote.js";
+import { StatusLote } from "@domain/enums/StatusLote.js";
 import { Equipamento } from "./Equipamento.js";
 
 export class Lote {

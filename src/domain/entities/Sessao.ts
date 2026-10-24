@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { PapelUsuario } from "../enums/PapelUsuario.js";
+import { PapelUsuario } from "@domain/enums/PapelUsuario.js";
 
 export class Sessao {
   private _token: string;

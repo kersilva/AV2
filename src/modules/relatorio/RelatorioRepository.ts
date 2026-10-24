@@ -1,5 +1,5 @@
-import type { StatusRastreamento } from "../generated/prisma/enums.js";
-import { prisma } from "../infrastructure/database.js";
+import type { StatusRastreamento } from "@/generated/prisma/enums.js";
+import { prisma } from "@infra/database.js";
 
 export class RelatorioRepository {
   lotesDaOrganizacao(organizacaoId: string, inicio?: Date, fim?: Date) {

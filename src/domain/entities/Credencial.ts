@@ -1,5 +1,5 @@
 import { createHash, scryptSync, timingSafeEqual } from "node:crypto";
-import { PapelUsuario } from "../enums/PapelUsuario.js";
+import { PapelUsuario } from "@domain/enums/PapelUsuario.js";
 
 export class Credencial {
   private _ultimoAcesso: Date;

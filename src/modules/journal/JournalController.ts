@@ -1,5 +1,5 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import { JournalService } from "../services/JournalService.js";
+import { JournalService } from "@journal/JournalService.js";
 
 export async function JournalController(
   app: FastifyInstance,

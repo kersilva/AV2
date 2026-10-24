@@ -1,6 +1,6 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import type { EstadoFisico, StatusRastreamento } from "../generated/prisma/enums.js";
-import { ServicoEquipamento, type NovoEquipamento } from "../services/EquipamentoService.js";
+import type { EstadoFisico, StatusRastreamento } from "@/generated/prisma/enums.js";
+import { ServicoEquipamento, type NovoEquipamento } from "@equipamento/EquipamentoService.js";
 
 export async function EquipamentoController(
   app: FastifyInstance,

@@ -1,4 +1,4 @@
-import { prisma } from "../infrastructure/database.js";
+import { prisma } from "@infra/database.js";
 
 export class ConfiguracaoRepository {
   obter() {

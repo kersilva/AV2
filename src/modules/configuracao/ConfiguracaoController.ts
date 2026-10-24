@@ -1,5 +1,5 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import { ServicoConfiguracao } from "../services/ConfiguracaoService.js";
+import { ServicoConfiguracao } from "@configuracao/ConfiguracaoService.js";
 
 export async function ConfiguracaoController(
   app: FastifyInstance,

@@ -1,5 +1,5 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import { ServicoLote, type NovoLote } from "../services/LoteService.js";
+import { ServicoLote, type NovoLote } from "@lote/LoteService.js";
 
 export async function LoteController(
   app: FastifyInstance, ler: preHandlerHookHandler, escrever: preHandlerHookHandler,

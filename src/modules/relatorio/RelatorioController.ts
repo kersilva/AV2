@@ -1,6 +1,6 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import type { StatusRastreamento } from "../generated/prisma/enums.js";
-import { ServicoRelatorio } from "../services/RelatorioService.js";
+import type { StatusRastreamento } from "@/generated/prisma/enums.js";
+import { ServicoRelatorio } from "@relatorio/RelatorioService.js";
 
 type Periodo = { inicio?: string; fim?: string };
 function converter(q: Periodo) {

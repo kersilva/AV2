@@ -1,6 +1,6 @@
-import type { Prisma } from "../generated/prisma/client.js";
-import { ValidadorCNPJ } from "../domain/validators/ValidadorCNPJ.js";
-import { OrganizacaoRepository } from "../repositories/OrganizacaoRepository.js";
+import type { Prisma } from "@/generated/prisma/client.js";
+import { ValidadorCNPJ } from "@domain/validators/ValidadorCNPJ.js";
+import { OrganizacaoRepository } from "@organizacao/OrganizacaoRepository.js";
 
 export type NovaOrganizacao = Pick<
   Prisma.OrganizacaoCreateInput,

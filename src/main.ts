@@ -1,16 +1,18 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import fastifyJwt from "@fastify/jwt";
-import { AutenticacaoController } from "./controllers/AutenticacaoController.js";
-import { ConfiguracaoController } from "./controllers/ConfiguracaoController.js";
-import { EquipamentoController } from "./controllers/EquipamentoController.js";
-import { JournalController } from "./controllers/JournalController.js";
-import { LoteController } from "./controllers/LoteController.js";
-import { OrganizacaoController } from "./controllers/OrganizacaoController.js";
-import { RelatorioController } from "./controllers/RelatorioController.js";
-import { UsuarioController } from "./controllers/UsuarioController.js";
-import { exigirPapeis } from "./infrastructure/autorizacao.js";
-import { prisma } from "./infrastructure/database.js";
+
+import { AutenticacaoController } from "@autenticacao/AutenticacaoController.js";
+import { ConfiguracaoController } from "@configuracao/ConfiguracaoController.js";
+import { EquipamentoController } from "@equipamento/EquipamentoController.js";
+import { JournalController } from "@journal/JournalController.js";
+import { LoteController } from "@lote/LoteController.js";
+import { OrganizacaoController } from "@organizacao/OrganizacaoController.js";
+import { RelatorioController } from "@relatorio/RelatorioController.js";
+import { UsuarioController } from "@usuario/UsuarioController.js";
+import { exigirPapeis } from "@infra/autorizacao.js";
+
+import { prisma } from "@infra/database.js";
 
 const secret = process.env.JWT_SECRET;
 if (!secret || Buffer.byteLength(secret) < 32) {

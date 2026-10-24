@@ -1,6 +1,6 @@
-import type { StatusLote } from "../generated/prisma/enums.js";
-import { ValidadorDataEntrada } from "../domain/validators/ValidadorDataEntrada.js";
-import { LoteRepository } from "../repositories/LoteRepository.js";
+import type { StatusLote } from "@/generated/prisma/enums.js";
+import { ValidadorDataEntrada } from "@domain/validators/ValidadorDataEntrada.js";
+import { LoteRepository } from "@lote/LoteRepository.js";
 
 export type NovoLote = {
   id: string; dataEntrada: Date; organizacaoId: string; notaFiscal: string;

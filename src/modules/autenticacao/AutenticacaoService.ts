@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
-import type { PapelUsuario } from "../generated/prisma/enums.js";
-import { criarHashSenha, verificarHashSenha } from "../infrastructure/senha.js";
-import { AutenticacaoRepository } from "../repositories/AutenticacaoRepository.js";
+import type { PapelUsuario } from "@/generated/prisma/enums.js";
+import { criarHashSenha, verificarHashSenha } from "@infra/senha.js";
+import { AutenticacaoRepository } from "@autenticacao/AutenticacaoRepository.js";
 
 export class ServicoAutenticacao {
   constructor(private readonly repository = new AutenticacaoRepository()) {}
 
-  async criarPrimeiroAdministrador(dados: { id: string; usuario: string; senha: string }) {
+  async criarPrimeiroAdmin(dados: { id: string; usuario: string; senha: string }) {
     if (!dados.usuario.trim() || dados.senha.length < 8) {
       throw new Error("Informe um usuário e uma senha com pelo menos 8 caracteres.");
     }
