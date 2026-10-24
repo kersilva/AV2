@@ -23,9 +23,11 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@fastify/jwt": "^10.2.5",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "dotenv": "^18.0.8",
+    "fastify": "^5.12.7",
     "pg": "^8.23.1"
   }
 }

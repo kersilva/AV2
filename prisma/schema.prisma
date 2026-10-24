@@ -67,6 +67,42 @@ enum TipoEquipamento {
 // MODELS
 // ====================
 
+model Usuario {
+  id           String       @id
+  usuario      String       @unique
+  hashSenha    String
+  ultimoAcesso DateTime?
+  papel        PapelUsuario
+  ativo        Boolean      @default(true)
+  versao       Int          @default(1)
+
+  journalTransacoes JournalTransacao[]
+}
+
+model JournalTransacao {
+  id                 String   @id
+  timestamp          DateTime @default(now())
+  operacao           String
+  entidade           String
+  dadosAntes         Json?
+  dadosDepois        Json?
+  usuarioId          String?
+  usuarioResponsavel String
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp])
+  @@index([entidade, timestamp])
+  @@index([usuarioId])
+}
+
+model ConfiguracaoSistema {
+  id                     Int     @id @default(1)
+  aliquotaImposto        Decimal @db.Decimal(5, 4)
+  coeficienteDepreciacao Decimal @db.Decimal(5, 4)
+  versao                 Int     @default(1)
+}
+
 model Movimentacao {
   id            String   @id
   equipamentoId String
@@ -74,30 +110,32 @@ model Movimentacao {
   origem        String
   destino       String
   responsavel   String
-  observacao    String
-  versao            Int      @default(1)
+  observacao    String?
+  versao        Int      @default(1)
 
   equipamento Equipamento @relation(fields: [equipamentoId], references: [id])
+
+  @@index([equipamentoId])
 }
 
 model ClausulaContrato {
   contratoId String
   ordem      Int
   texto      String
-  versao     Int      @default(1)
 
   contrato Contrato @relation(fields: [contratoId], references: [id], onDelete: Cascade)
 
   @@id([contratoId, ordem])
 }
+
 model Contrato {
-  id                  String   @id
+  id                  String             @id
   dataAssinatura      DateTime
   dataVencimento      DateTime
   clausulas           ClausulaContrato[]
-  valorMensal         Decimal  @db.Decimal(12, 2)
+  valorMensal         Decimal            @db.Decimal(12, 2)
   renovacaoAutomatica Boolean
-  versao              Int      @default(1)
+  versao              Int                @default(1)
 
   organizacaoId String      @unique
   organizacao   Organizacao @relation(fields: [organizacaoId], references: [id])
@@ -114,12 +152,14 @@ model Equipamento {
   modelo              String
   anoFabricacao       Int
   estadoFisico        EstadoFisico
-  pesoQuilogramas     Decimal @db.Decimal(10, 2)
+  pesoQuilogramas     Decimal            @db.Decimal(10, 2)
   loteId              String
   statusRastreamento  StatusRastreamento
-  versao            Int      @default(1)
+  versao              Int                @default(1)
 
   lote Lote @relation(fields: [loteId], references: [id])
+
+  @@unique([loteId, posicaoNoLote])
 }
 
 model Lote {
@@ -131,10 +171,12 @@ model Lote {
   transportadora      String
   equipamentos        Equipamento[]
   statusProcessamento StatusLote
-  observacoes         String
-  versao            Int      @default(1)
+  observacoes         String?
+  versao              Int           @default(1)
 
   organizacao Organizacao @relation(fields: [organizacaoId], references: [id])
+
+  @@index([organizacaoId])
 }
 
 model Organizacao {
