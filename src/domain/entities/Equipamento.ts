@@ -1,30 +1,117 @@
 import { EstadoFisico } from "@domain/enums/EstadoFisico.js";
 import { StatusRastreamento } from "@domain/enums/StatusRastreamento.js";
 import { TipoEquipamento } from "@domain/enums/TipoEquipamento.js";
-import { Movimentacao } from "./Movimentacao.js";
+import {
+  ErroRegraNegocio,
+  ErroValidacao,
+} from "@/shared/errors/DomainError.js";
+import { Movimentacao, type MovimentacaoPersistida } from "./Movimentacao.js";
+
+export type EquipamentoPersistido = {
+  id: string;
+  codigoBarrasInterno: string;
+  tipo: TipoEquipamento;
+  marca: string;
+  modelo: string;
+  anoFabricacao: number;
+  estadoFisico: EstadoFisico;
+  pesoQuilogramas: number;
+  loteId: string;
+  posicaoNoLote: number;
+  statusRastreamento: StatusRastreamento;
+  versao: number;
+};
+
+export type NovoEquipamento = Omit<
+  EquipamentoPersistido,
+  "versao" | "statusRastreamento"
+> & {
+  statusRastreamento?: StatusRastreamento;
+};
+
+const ORDEM_ESTADO: EstadoFisico[] = [
+  EstadoFisico.NOVO,
+  EstadoFisico.BOM_ESTADO,
+  EstadoFisico.USADO_LEVE,
+  EstadoFisico.USADO_MODERADO,
+  EstadoFisico.DANIFICADO_LEVE,
+  EstadoFisico.DANIFICADO_GRAVE,
+  EstadoFisico.INSERVIVEL,
+];
 
 export class Equipamento {
-  private _estadoFisico: EstadoFisico;
-  private _posicaoNoLote: number;
-  private readonly _historicoMovimentacao: Movimentacao[];
-
-  constructor(
+  private constructor(
     private readonly _id: string,
     private readonly _codigoBarrasInterno: string,
     private readonly _tipo: TipoEquipamento,
     private readonly _marca: string,
     private readonly _modelo: string,
     private readonly _anoFabricacao: number,
-    estadoFisico: EstadoFisico,
+    private _estadoFisico: EstadoFisico,
     private readonly _pesoQuilogramas: number,
     private readonly _loteId: string,
-    posicaoNoLote: number,
+    private _posicaoNoLote: number,
     private _statusRastreamento: StatusRastreamento,
-    historicoMovimentacao: Movimentacao[] = [],
-  ) {
-    this._estadoFisico = estadoFisico;
-    this._posicaoNoLote = posicaoNoLote;
-    this._historicoMovimentacao = [...historicoMovimentacao];
+    private readonly _historicoMovimentacao: Movimentacao[],
+    private _versao: number,
+  ) {}
+
+  static criar(dados: NovoEquipamento): Equipamento {
+    if (
+      !dados.id.trim() ||
+      !dados.codigoBarrasInterno.trim() ||
+      !dados.marca.trim() ||
+      !dados.modelo.trim()
+    ) {
+      throw new ErroValidacao("Preencha os dados obrigatórios do equipamento.");
+    }
+    if (!Number.isInteger(dados.anoFabricacao) || dados.anoFabricacao < 1900) {
+      throw new ErroValidacao("O ano de fabricação do equipamento é inválido.");
+    }
+    if (!Number.isFinite(dados.pesoQuilogramas) || dados.pesoQuilogramas <= 0) {
+      throw new ErroValidacao("O peso do equipamento deve ser positivo.");
+    }
+    if (!Number.isInteger(dados.posicaoNoLote) || dados.posicaoNoLote < 1) {
+      throw new ErroValidacao(
+        "A posição do equipamento no lote deve ser positiva.",
+      );
+    }
+    return new Equipamento(
+      dados.id,
+      dados.codigoBarrasInterno,
+      dados.tipo,
+      dados.marca.trim(),
+      dados.modelo.trim(),
+      dados.anoFabricacao,
+      dados.estadoFisico,
+      dados.pesoQuilogramas,
+      dados.loteId,
+      dados.posicaoNoLote,
+      dados.statusRastreamento ?? StatusRastreamento.AGUARDANDO_TRIAGEM,
+      [],
+      1,
+    );
+  }
+
+  static reconstituir(
+    dados: EquipamentoPersistido,
+    historico: Movimentacao[] = [],
+  ): Equipamento {
+    return new Equipamento(
+      dados.id,
+      dados.codigoBarrasInterno,
+      dados.tipo,
+      dados.marca,
+      dados.modelo,
+      dados.anoFabricacao,
+      dados.estadoFisico,
+      dados.pesoQuilogramas,
+      dados.loteId,
+      dados.posicaoNoLote,
+      dados.statusRastreamento,
+      [...historico],
+      dados.versao,
+    );
   }
 
   get id(): string {
@@ -48,9 +135,6 @@ export class Equipamento {
   get estadoFisico(): EstadoFisico {
     return this._estadoFisico;
   }
-  set estadoFisico(novoEstado: EstadoFisico) {
-    this._estadoFisico = novoEstado;
-  }
   get pesoQuilogramas(): number {
     return this._pesoQuilogramas;
   }
@@ -60,67 +144,88 @@ export class Equipamento {
   get posicaoNoLote(): number {
     return this._posicaoNoLote;
   }
-  set posicaoNoLote(posicao: number) {
-    this._posicaoNoLote = posicao;
-  }
   get statusRastreamento(): StatusRastreamento {
     return this._statusRastreamento;
   }
   get historicoMovimentacao(): Movimentacao[] {
     return [...this._historicoMovimentacao];
   }
+  get versao(): number {
+    return this._versao;
+  }
 
-  toJSON(): object {
-    return {
-      id: this.id,
-      codigoBarrasInterno: this.codigoBarrasInterno,
-      tipo: this.tipo,
-      marca: this.marca,
-      modelo: this.modelo,
-      anoFabricacao: this.anoFabricacao,
-      estadoFisico: this.estadoFisico,
-      pesoQuilogramas: this.pesoQuilogramas,
-      loteId: this.loteId,
-      posicaoNoLote: this.posicaoNoLote,
-      statusRastreamento: this.statusRastreamento,
-      historicoMovimentacao: this.historicoMovimentacao,
-    };
+  atualizarEstadoFisico(novoEstado: EstadoFisico, justificativa: string): void {
+    const anterior = ORDEM_ESTADO.indexOf(this._estadoFisico);
+    const novo = ORDEM_ESTADO.indexOf(novoEstado);
+    if (novo < 0) throw new ErroValidacao("Estado físico inválido.");
+    if (novo >= anterior + 2 && !justificativa.trim()) {
+      throw new ErroRegraNegocio(
+        "É obrigatória justificativa para queda de duas categorias no estado físico.",
+      );
+    }
+    this._estadoFisico = novoEstado;
   }
 
   atualizarStatus(novoStatus: StatusRastreamento, justificativa: string): void {
-    const triagemConcluida =
-      this._statusRastreamento === StatusRastreamento.AGUARDANDO_DESMONTE ||
-      this._statusRastreamento === StatusRastreamento.EM_DESMONTE ||
-      this._statusRastreamento === StatusRastreamento.PECAS_REAPROVEITADAS ||
-      this._statusRastreamento === StatusRastreamento.MATERIAL_RECICLAVEL ||
-      this._statusRastreamento === StatusRastreamento.DESCARTE_SEGURO ||
-      this._statusRastreamento === StatusRastreamento.BAIXA_DEFINITIVA;
-    if (novoStatus === StatusRastreamento.EM_DESMONTE && !triagemConcluida) {
-      throw new Error(
-        "O equipamento precisa concluir a triagem antes do desmonte.",
+    if (!justificativa.trim())
+      throw new ErroValidacao("Informe a justificativa da mudança de status.");
+    if (
+      novoStatus === StatusRastreamento.AGUARDANDO_DESMONTE &&
+      this._statusRastreamento !== StatusRastreamento.EM_TRIAGEM
+    ) {
+      throw new ErroRegraNegocio(
+        "O equipamento só pode aguardar desmonte após a triagem.",
       );
     }
-    if (!justificativa.trim())
-      throw new Error("Informe a justificativa da mudança de status.");
+    if (
+      novoStatus === StatusRastreamento.EM_DESMONTE &&
+      this._statusRastreamento !== StatusRastreamento.AGUARDANDO_DESMONTE
+    ) {
+      throw new ErroRegraNegocio("O desmonte só pode começar após a triagem.");
+    }
     this._statusRastreamento = novoStatus;
   }
 
-  registrarMovimentacao(destino: string, responsavel: string): void {
-    this._historicoMovimentacao.push(
-      new Movimentacao(
-        `${this._id}-${Date.now()}`,
-        this._id,
-        new Date(),
-        "",
-        destino,
-        responsavel,
-        "",
-      ),
-    );
+  registrarMovimentacao(dados: {
+    id: string;
+    destino: string;
+    responsavel: string;
+    observacao?: string;
+    dataHora?: Date;
+  }): Movimentacao {
+    const origem = this._historicoMovimentacao.at(-1)?.destino ?? "";
+    const movimentacao = Movimentacao.criar({
+      id: dados.id,
+      equipamentoId: this._id,
+      dataHora: dados.dataHora ?? new Date(),
+      origem,
+      destino: dados.destino,
+      responsavel: dados.responsavel,
+      observacao: dados.observacao ?? "",
+    });
+    this._historicoMovimentacao.push(movimentacao);
+    return movimentacao;
   }
 
-  calcularDepreciacao(): number {
+  calcularDepreciacao(coeficienteAnual = 0.2): number {
     const idade = Math.max(0, new Date().getFullYear() - this._anoFabricacao);
-    return Math.min(1, Math.max(0, 0.2 * idade));
+    return Math.min(1, Math.max(0, coeficienteAnual * idade));
+  }
+
+  toPrisma(): EquipamentoPersistido {
+    return {
+      id: this._id,
+      codigoBarrasInterno: this._codigoBarrasInterno,
+      tipo: this._tipo,
+      marca: this._marca,
+      modelo: this._modelo,
+      anoFabricacao: this._anoFabricacao,
+      estadoFisico: this._estadoFisico,
+      pesoQuilogramas: this._pesoQuilogramas,
+      loteId: this._loteId,
+      posicaoNoLote: this._posicaoNoLote,
+      statusRastreamento: this._statusRastreamento,
+      versao: this._versao,
+    };
   }
 }

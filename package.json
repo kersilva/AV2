@@ -6,10 +6,7 @@
   "scripts": {
     "dev": "tsx src/main.ts",
     "build": "tsc && tsc-alias",
-    "start": "node dist/main.js",
-    "test:journey": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/jornada-cli.js",
-    "test:journal": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/falhas-journal.js",
-    "test:security": "npm run build && tsc -p tsconfig.tests.json && node dist-tests/seguranca.js"
+    "start": "node dist/main.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +16,7 @@
     "@types/node": "^26.6.5",
     "@types/pg": "^8.23.1",
     "prisma": "^7.10.1",
+    "tsc-alias": "^1.9.9",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
@@ -26,6 +24,7 @@
     "@fastify/jwt": "^10.2.5",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
+    "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.8",
     "fastify": "^5.12.7",
     "pg": "^8.23.1"

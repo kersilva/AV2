@@ -151,3 +151,15 @@ data/
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# TypeScript build artifacts
+**/*.js
+**/*.js.map
+**/*.d.ts
+**/*.d.ts.map
+
+# Mas permitir configs JS intencional
+!jest.config.js
+!vitest.config.js
+!*.config.cjs
+!*.config.mjs

@@ -1,22 +1,89 @@
 import { StatusLote } from "@domain/enums/StatusLote.js";
+import {
+  ErroRegraNegocio,
+  ErroValidacao,
+} from "@/shared/errors/DomainError.js";
 import { Equipamento } from "./Equipamento.js";
 
-export class Lote {
-  private readonly _equipamentos: Equipamento[];
-  private _statusProcessamento: StatusLote;
+export type LotePersistido = {
+  id: string;
+  dataEntrada: Date;
+  organizacaoId: string;
+  notaFiscal: string;
+  transportadora: string;
+  statusProcessamento: StatusLote;
+  observacoes: string | null;
+  versao: number;
+};
+export type NovoLote = Omit<
+  LotePersistido,
+  "versao" | "statusProcessamento"
+> & {
+  statusProcessamento?: StatusLote;
+  observacoes?: string | null;
+};
 
-  constructor(
+const PROXIMO: Partial<Record<StatusLote, StatusLote>> = {
+  [StatusLote.RECEBIDO]: StatusLote.EM_TRIAGEM,
+  [StatusLote.EM_TRIAGEM]: StatusLote.TRIAGEM_CONCLUIDA,
+  [StatusLote.TRIAGEM_CONCLUIDA]: StatusLote.ENCAMINHADO,
+  [StatusLote.ENCAMINHADO]: StatusLote.FINALIZADO,
+};
+
+export class Lote {
+  private constructor(
     private readonly _id: string,
     private readonly _dataEntrada: Date,
     private readonly _organizacaoId: string,
     private readonly _notaFiscal: string,
     private readonly _transportadora: string,
+    private readonly _equipamentos: Equipamento[],
+    private _statusProcessamento: StatusLote,
+    private readonly _observacoes: string | null,
+    private _versao: number,
+  ) {}
+
+  static criar(dados: NovoLote): Lote {
+    if (
+      !dados.id.trim() ||
+      !dados.organizacaoId.trim() ||
+      !dados.notaFiscal.trim() ||
+      !dados.transportadora.trim()
+    ) {
+      throw new ErroValidacao(
+        "Nota fiscal, transportadora e identificadores são obrigatórios.",
+      );
+    }
+    if (Number.isNaN(dados.dataEntrada.getTime()))
+      throw new ErroValidacao("Data de entrada inválida.");
+    return new Lote(
+      dados.id,
+      dados.dataEntrada,
+      dados.organizacaoId,
+      dados.notaFiscal.trim(),
+      dados.transportadora.trim(),
+      [],
+      dados.statusProcessamento ?? StatusLote.RECEBIDO,
+      dados.observacoes ?? null,
+      1,
+    );
+  }
+
+  static reconstituir(
+    dados: LotePersistido,
     equipamentos: Equipamento[] = [],
-    statusProcessamento: StatusLote = StatusLote.RECEBIDO,
-    private readonly _observacoes = "",
-  ) {
-    this._equipamentos = [...equipamentos];
-    this._statusProcessamento = statusProcessamento;
+  ): Lote {
+    return new Lote(
+      dados.id,
+      dados.dataEntrada,
+      dados.organizacaoId,
+      dados.notaFiscal,
+      dados.transportadora,
+      [...equipamentos],
+      dados.statusProcessamento,
+      dados.observacoes,
+      dados.versao,
+    );
   }
 
   get id(): string {
@@ -40,32 +107,18 @@ export class Lote {
   get statusProcessamento(): StatusLote {
     return this._statusProcessamento;
   }
-  set statusProcessamento(status: StatusLote) {
-    this._statusProcessamento = status;
-  }
-  get observacoes(): string {
+  get observacoes(): string | null {
     return this._observacoes;
   }
-
-  toJSON(): object {
-    return {
-      id: this.id,
-      dataEntrada: this.dataEntrada,
-      organizacaoId: this.organizacaoId,
-      notaFiscal: this.notaFiscal,
-      transportadora: this.transportadora,
-      equipamentos: this.equipamentos,
-      statusProcessamento: this.statusProcessamento,
-      observacoes: this.observacoes,
-    };
+  get versao(): number {
+    return this._versao;
   }
 
   adicionarEquipamento(equipamento: Equipamento): void {
     if (equipamento.loteId !== this._id)
-      throw new Error("O equipamento referencia outro lote.");
+      throw new ErroRegraNegocio("O equipamento referencia outro lote.");
     if (this._equipamentos.some((item) => item.id === equipamento.id))
-      throw new Error("O equipamento já foi adicionado ao lote.");
-    equipamento.posicaoNoLote = this._equipamentos.length + 1;
+      throw new ErroRegraNegocio("O equipamento já foi adicionado ao lote.");
     this._equipamentos.push(equipamento);
   }
 
@@ -75,10 +128,13 @@ export class Lote {
     );
     if (index < 0) return false;
     this._equipamentos.splice(index, 1);
-    this._equipamentos.forEach((item, pos) => {
-      item.posicaoNoLote = pos + 1;
-    });
     return true;
+  }
+
+  processarTriagem(): void {
+    const proximo = PROXIMO[this._statusProcessamento];
+    if (!proximo) throw new ErroRegraNegocio("O lote já está no estado final.");
+    this._statusProcessamento = proximo;
   }
 
   calcularPesoTotal(): number {
@@ -88,19 +144,16 @@ export class Lote {
     );
   }
 
-  gerarRelatorioTriagem(): string {
-    const porStatus = this._equipamentos.reduce<Record<string, number>>(
-      (contagem, item) => {
-        const chave = String(item.statusRastreamento);
-        contagem[chave] = (contagem[chave] ?? 0) + 1;
-        return contagem;
-      },
-      {},
-    );
-    return JSON.stringify(
-      { loteId: this._id, total: this._equipamentos.length, porStatus },
-      null,
-      2,
-    );
+  toPrisma(): LotePersistido {
+    return {
+      id: this._id,
+      dataEntrada: this._dataEntrada,
+      organizacaoId: this._organizacaoId,
+      notaFiscal: this._notaFiscal,
+      transportadora: this._transportadora,
+      statusProcessamento: this._statusProcessamento,
+      observacoes: this._observacoes,
+      versao: this._versao,
+    };
   }
 }

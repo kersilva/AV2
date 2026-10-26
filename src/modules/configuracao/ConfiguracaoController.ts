@@ -1,17 +1,21 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import { ServicoConfiguracao } from "@configuracao/ConfiguracaoService.js";
-
+import type { ConfiguracaoService } from "@configuracao/ConfiguracaoService.js";
 export async function ConfiguracaoController(
   app: FastifyInstance,
   exigirAdministrador: preHandlerHookHandler,
-  service = new ServicoConfiguracao(),
+  service: ConfiguracaoService,
 ) {
-  app.get("/configuracao", { preHandler: exigirAdministrador }, async (_req, res) =>
-    res.send(await service.obter()),
+  app.get(
+    "/configuracao",
+    { preHandler: exigirAdministrador },
+    async (_req, res) => res.send(await service.obter()),
   );
-
   app.put<{
-    Body: { aliquotaImposto: number; coeficienteDepreciacao: number; versao?: number };
+    Body: {
+      aliquotaImposto: number;
+      coeficienteDepreciacao: number;
+      versao?: number;
+    };
   }>(
     "/configuracao",
     {
@@ -29,6 +33,7 @@ export async function ConfiguracaoController(
         },
       },
     },
-    async (req, res) => res.send(await service.atualizar(req.body)),
+    async (req, res) => res.send(await service.atualizar(req.body, { id: req.user.sub, usuario: req.user.usuario })),
   );
 }
+

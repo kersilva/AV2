@@ -1,16 +1,14 @@
 import type { FastifyInstance, preHandlerHookHandler } from "fastify";
-import type { PapelUsuario } from "@/generated/prisma/enums.js";
-import { UsuarioService } from "@usuario/UsuarioService.js";
-
+import type { PapelUsuario } from "@domain/enums/PapelUsuario.js";
+import type { UsuarioService } from "@usuario/UsuarioService.js";
 export async function UsuarioController(
   app: FastifyInstance,
   exigirAdministrador: preHandlerHookHandler,
-  service = new UsuarioService(),
+  service: UsuarioService,
 ) {
   app.get("/usuarios", { preHandler: exigirAdministrador }, async (_req, res) =>
     res.send(await service.listar()),
   );
-
   app.post<{
     Body: { id: string; usuario: string; senha: string; papel: PapelUsuario };
   }>(
@@ -25,15 +23,22 @@ export async function UsuarioController(
           properties: {
             id: { type: "string", minLength: 1 },
             usuario: { type: "string", minLength: 1 },
-            senha: { type: "string", minLength: 8 },
-            papel: { type: "string", enum: ["ADMINISTRADOR", "OPERADOR_CADASTRO", "GESTOR_ALMOXARIFADO", "AUDITOR"] },
+            senha: { type: "string" },
+            papel: {
+              type: "string",
+              enum: [
+                "ADMINISTRADOR",
+                "OPERADOR_CADASTRO",
+                "GESTOR_ALMOXARIFADO",
+                "AUDITOR",
+              ],
+            },
           },
         },
       },
     },
-    async (req, res) => res.code(201).send(await service.cadastrar(req.body)),
+    async (req, res) => res.code(201).send(await service.cadastrar(req.body, { id: req.user.sub, usuario: req.user.usuario })),
   );
-
   app.patch<{
     Params: { id: string };
     Body: { ativo: boolean; versao: number };
@@ -46,13 +51,23 @@ export async function UsuarioController(
           type: "object",
           additionalProperties: false,
           required: ["ativo", "versao"],
-          properties: { ativo: { type: "boolean" }, versao: { type: "integer", minimum: 1 } },
+          properties: {
+            ativo: { type: "boolean" },
+            versao: { type: "integer", minimum: 1 },
+          },
         },
       },
     },
-    async (req, res) => res.send(await service.alterarAtivo(req.params.id, req.body.ativo, req.body.versao)),
+    async (req, res) =>
+      res.send(
+        await service.alterarAtivo(
+          req.params.id,
+          req.body.ativo,
+          req.body.versao,
+          { id: req.user.sub, usuario: req.user.usuario },
+        ),
+      ),
   );
-
   app.patch<{
     Params: { id: string };
     Body: { papel: PapelUsuario; versao: number };
@@ -66,18 +81,31 @@ export async function UsuarioController(
           additionalProperties: false,
           required: ["papel", "versao"],
           properties: {
-            papel: { type: "string", enum: ["ADMINISTRADOR", "OPERADOR_CADASTRO", "GESTOR_ALMOXARIFADO", "AUDITOR"] },
+            papel: {
+              type: "string",
+              enum: [
+                "ADMINISTRADOR",
+                "OPERADOR_CADASTRO",
+                "GESTOR_ALMOXARIFADO",
+                "AUDITOR",
+              ],
+            },
             versao: { type: "integer", minimum: 1 },
           },
         },
       },
     },
-    async (req, res) => res.send(await service.alterarPapel(req.params.id, req.body.papel, req.body.versao)),
+    async (req, res) =>
+      res.send(
+        await service.alterarPapel(
+          req.params.id,
+          req.body.papel,
+          req.body.versao,
+          { id: req.user.sub, usuario: req.user.usuario },
+        ),
+      ),
   );
-  app.delete<{
-    Params: { id: string };
-    Body: { versao: number };
-  }>(
+  app.delete<{ Params: { id: string }; Body: { versao: number } }>(
     "/usuarios/:id",
     {
       preHandler: exigirAdministrador,
@@ -90,7 +118,11 @@ export async function UsuarioController(
         },
       },
     },
-    async (req, res) => res.send(await service.deletar(req.params.id, req.body.versao)),
+    async (req, res) =>
+      res.send(await service.deletar(req.params.id, req.body.versao, { id: req.user.sub, usuario: req.user.usuario })),
   );
 }
+
+
+
 

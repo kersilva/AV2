@@ -27,6 +27,7 @@
       // Modules
       "@autenticacao/*": ["./src/modules/autenticacao/*"],
       "@configuracao/*": ["./src/modules/configuracao/*"],
+      "@contrato/*": ["./src/modules/contrato/*"],
       "@equipamento/*": ["./src/modules/equipamento/*"],
       "@journal/*": ["./src/modules/journal/*"],
       "@lote/*": ["./src/modules/lote/*"],
@@ -63,3 +64,5 @@
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "dist-tests", "node_modules", "tests"]
 }
+
+
