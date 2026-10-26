@@ -103,8 +103,12 @@ export class PrismaContratoRepository implements IContratoRepository {
     return contrato?.organizacaoId ?? null;
   }
 
-  async existeParaOrganizacao(organizacaoId: string): Promise<boolean> {
-    return (await prisma.contrato.count({ where: { organizacaoId } })) > 0;
+  async existeAtivoParaOrganizacao(organizacaoId: string): Promise<boolean> {
+    return (
+      (await prisma.contrato.count({
+        where: { organizacaoId, excluidoEm: null },
+      })) > 0
+    );
   }
 
   async atualizarVencimento(

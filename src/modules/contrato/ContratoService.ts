@@ -38,9 +38,9 @@ export class ContratoService {
   ): Promise<ContratoView> {
     if (!(await this.repository.organizacaoAtiva(dados.organizacaoId)))
       throw new ErroNaoEncontrado("Organização ativa não encontrada.");
-    if (await this.repository.existeParaOrganizacao(dados.organizacaoId))
+    if (await this.repository.existeAtivoParaOrganizacao(dados.organizacaoId))
       throw new ErroConflito(
-        "A organização já possui um contrato. Reative o contrato excluído ou consulte o registro existente.",
+        "A organização já possui um contrato ativo. Consulte o contrato existente ou exclua-o antes de cadastrar outro.",
       );
     const contrato = await this.repository.criar(Contrato.criar(dados));
     const resultado = this.dto(contrato);
@@ -114,6 +114,10 @@ export class ContratoService {
     if (!(await this.repository.organizacaoAtiva(organizacaoId)))
       throw new ErroRegraNegocio(
         "Reative a organização antes de reativar o contrato.",
+      );
+    if (await this.repository.existeAtivoParaOrganizacao(organizacaoId))
+      throw new ErroConflito(
+        "A organização já possui outro contrato ativo. Exclua-o antes de reativar este.",
       );
     if (!(await this.repository.reativar(id, versao)))
       throw new ErroConflito("Conflito de versão do contrato.");

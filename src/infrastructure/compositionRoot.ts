@@ -13,6 +13,7 @@ import { JournalController } from "@journal/JournalController.js";
 import { PrismaJournalReader } from "@infra/journal/JournalReader.js";
 import { JournalService } from "@journal/JournalService.js";
 import { PrismaJournalWriter } from "@infra/journal/PrismaJournalWriter.js";
+import { PrismaUnitOfWork } from "@infra/PrismaUnitOfWork.js";
 import { LoteController } from "@lote/LoteController.js";
 import { LoteService } from "@lote/LoteService.js";
 import { OrganizacaoController } from "@organizacao/OrganizacaoController.js";
@@ -44,7 +45,11 @@ export async function compositionRoot(app: FastifyInstance): Promise<void> {
   const autenticacao = new AutenticacaoService(usuarioRepository, hash, journalWriter);
   const configuracao = new ConfiguracaoService(new PrismaConfiguracaoRepository(), journalWriter);
   const contrato = new ContratoService(new PrismaContratoRepository(), journalWriter);
-  const equipamento = new EquipamentoService(new PrismaEquipamentoRepository(), journalWriter);
+  const equipamento = new EquipamentoService(
+    new PrismaEquipamentoRepository(),
+    journalWriter,
+    new PrismaUnitOfWork(),
+  );
   const lote = new LoteService(new PrismaLoteRepository(), journalWriter);
   const organizacao = new OrganizacaoService(new PrismaOrganizacaoRepository(), journalWriter);
   const relatorio = new RelatorioService(new RelatorioQueryService());

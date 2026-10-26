@@ -5,6 +5,7 @@ import { Equipamento } from "@domain/entities/Equipamento.js";
 import type { NovoEquipamento } from "@domain/entities/Equipamento.js";
 import type { EquipamentoRepository } from "@domain/repositories/EquipamentoRepository.js";
 import type { JournalWriter } from "@domain/services/JournalWriter.js";
+import type { UnitOfWork } from "@domain/services/UnitOfWork.js";
 import {
   ErroConflito,
   ErroNaoEncontrado,
@@ -36,6 +37,7 @@ export class EquipamentoService {
   constructor(
     private readonly repository: EquipamentoRepository,
     private readonly journalWriter: JournalWriter,
+    private readonly unitOfWork: UnitOfWork,
   ) {}
   async cadastrar(
     dados: NovoEquipamento,
@@ -157,26 +159,41 @@ export class EquipamentoService {
     dados: { destino: string; observacao?: string },
     ator: { id: string; usuario: string },
   ) {
-    const equipamento = await this.buscar(id);
-    const movimentacao = equipamento.registrarMovimentacao({
-      id: randomUUID(),
-      destino: dados.destino,
-      responsavel: ator.usuario,
-      ...(dados.observacao ? { observacao: dados.observacao } : {}),
+    return this.unitOfWork.executar(async ({ equipamentos, journal }) => {
+      const equipamento = await equipamentos.buscarPorId(id);
+      if (!equipamento)
+        throw new ErroNaoEncontrado("Equipamento não encontrado.");
+
+      const movimentacao = equipamento.registrarMovimentacao({
+        id: randomUUID(),
+        destino: dados.destino,
+        responsavel: ator.usuario,
+        ...(dados.observacao ? { observacao: dados.observacao } : {}),
+      });
+
+      const salva = await equipamentos.criarMovimentacao(movimentacao);
+      const dto = {
+        id: salva.id,
+        equipamentoId: salva.equipamentoId,
+        dataHora: salva.dataHora,
+        origem: salva.origem,
+        destino: salva.destino,
+        responsavel: salva.responsavel,
+        observacao: salva.observacao,
+      };
+
+      await journal.registrar({
+        operacao: "REGISTRAR_MOVIMENTACAO",
+        entidade: "Equipamento",
+        usuarioId: ator.id,
+        usuarioResponsavel: ator.usuario,
+        dadosDepois: dto,
+      });
+
+      return dto;
     });
-    const salva = await this.repository.criarMovimentacao(movimentacao);
-    const dto = {
-      id: salva.id,
-      equipamentoId: salva.equipamentoId,
-      dataHora: salva.dataHora,
-      origem: salva.origem,
-      destino: salva.destino,
-      responsavel: salva.responsavel,
-      observacao: salva.observacao,
-    };
-    await this.registrarNoJournal("REGISTRAR_MOVIMENTACAO", ator, null, dto);
-    return dto;
   }
+
   private async buscar(id: string): Promise<Equipamento> {
     const item = await this.repository.buscarPorId(id);
     if (!item) throw new ErroNaoEncontrado("Equipamento não encontrado.");

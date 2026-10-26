@@ -24,8 +24,12 @@ function where(
   };
 }
 export class PrismaJournalTransacaoRepository implements JournalTransacaoRepository {
+  constructor(
+    private readonly db: Pick<Prisma.TransactionClient, "journalTransacao"> = prisma,
+  ) {}
+
   async criar(dados: JournalTransacaoRecord): Promise<JournalTransacaoRecord> {
-    return (await prisma.journalTransacao.create({
+    return (await this.db.journalTransacao.create({
       data: {
         id: dados.id,
         timestamp: dados.timestamp,
@@ -42,21 +46,21 @@ export class PrismaJournalTransacaoRepository implements JournalTransacaoReposit
             ? Prisma.JsonNull
             : (dados.dadosDepois as Prisma.InputJsonValue),
       },
-    })) as unknown as JournalTransacaoRecord;
+    }));
   }
   async listar(
     filtro: FiltroJournalTransacao,
   ): Promise<ResultadoJournalTransacao> {
     const condicao = where(filtro);
     const [itens, total] = await Promise.all([
-      prisma.journalTransacao.findMany({
+      this.db.journalTransacao.findMany({
         where: condicao,
         orderBy: { timestamp: "desc" },
         skip: (filtro.pagina - 1) * filtro.porPagina,
         take: filtro.porPagina,
       }),
-      prisma.journalTransacao.count({ where: condicao }),
+      this.db.journalTransacao.count({ where: condicao }),
     ]);
-    return { itens: itens as unknown as JournalTransacaoRecord[], total };
+    return { itens: itens, total };
   }
 }

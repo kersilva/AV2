@@ -7,7 +7,7 @@ export interface ContratoRepository extends SoftDeleteRepository {
   criar(contrato: Contrato): Promise<Contrato>;
   organizacaoAtiva(id: string): Promise<boolean>;
   organizacaoIdDoContrato(id: string): Promise<string | null>;
-  existeParaOrganizacao(organizacaoId: string): Promise<boolean>;
+  existeAtivoParaOrganizacao(organizacaoId: string): Promise<boolean>;
   contar(): Promise<number>;
   atualizarVencimento(id: string, versao: number, novoVencimento: Date): Promise<boolean>;
 }

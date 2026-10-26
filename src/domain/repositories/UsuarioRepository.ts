@@ -19,5 +19,6 @@ export interface UsuarioRepository {
   deletar(id: string, versao: number): Promise<boolean>;
   contar(): Promise<number>;
   contarAdministradoresAtivos(): Promise<number>;
+  possuiHistoricoJournal(id: string): Promise<boolean>;
   transacao<T>(operacao: (repositorio: UsuarioRepository) => Promise<T>): Promise<T>;
 }

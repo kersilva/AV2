@@ -21,6 +21,8 @@ const ROTULOS: Record<Exclude<keyof NovaOrganizacao, "id">, string> = {
   email: "O e-mail",
 };
 
+const somenteDigitos = (valor: string) => valor.replace(/\D/g, "");
+
 export type ExclusaoView = {
   id: string;
   excluidoEm: Date | null;
@@ -50,7 +52,7 @@ export class OrganizacaoService {
       if (valor === undefined) continue;
       const limpo = valor.trim();
       if (!limpo) throw new ErroValidacao(`${ROTULOS[campo]} é obrigatório.`);
-      alteracoes[campo] = limpo;
+      alteracoes[campo] = campo === "cnpj" ? somenteDigitos(limpo) : limpo;
     }
 
     if (Object.keys(alteracoes).length === 0)
@@ -62,14 +64,14 @@ export class OrganizacaoService {
     )
       throw new ErroValidacao(this.validadorCNPJ.obterMensagemErro());
 
-    if (!(await this.repository.atualizar(id, versao, alteracoes)))
+    const atualizada = await this.repository.atualizar(id, versao, alteracoes);
+    if (!atualizada)
       throw new ErroConflito(
         "A organização foi alterada. Consulte a versão atual e tente novamente.",
       );
 
-    const resultado = await this.rastrearOrganizacao(id);
-    await this.registrarJournal("ATUALIZAR", ator, atual, resultado);
-    return resultado;
+    await this.registrarJournal("ATUALIZAR", ator, atual, atualizada);
+    return atualizada;
   }
 
   async cadastrar(
@@ -89,13 +91,16 @@ export class OrganizacaoService {
       if (!dados[campo].trim())
         throw new ErroValidacao(`${nome} é obrigatório.`);
     }
-    if (!this.validadorCNPJ.validar(dados.cnpj)) {
-      throw new ErroValidacao(this.validadorCNPJ.obterMensagemErro());
-    }
     const normalizados = Object.fromEntries(
       campos.map(([campo]) => [campo, dados[campo].trim()]),
     ) as NovaOrganizacao;
+    normalizados.cnpj = somenteDigitos(normalizados.cnpj);
+
+    if (!this.validadorCNPJ.validar(normalizados.cnpj)) {
+      throw new ErroValidacao(this.validadorCNPJ.obterMensagemErro());
+    }
     const criada = await this.repository.criar(normalizados);
+    
     await this.registrarJournal("CRIAR", ator, null, criada);
     return criada;
   }

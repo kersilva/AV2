@@ -1,4 +1,4 @@
-import type { Prisma } from "@/generated/prisma/client.js";
+import { Prisma } from "@/generated/prisma/client.js";
 import { EstadoFisico } from "@domain/enums/EstadoFisico.js";
 import { StatusRastreamento } from "@domain/enums/StatusRastreamento.js";
 import { TipoEquipamento } from "@domain/enums/TipoEquipamento.js";
@@ -42,8 +42,15 @@ const equipamentoCompleto = {
 } as const;
 
 export class PrismaEquipamentoRepository implements IEquipamentoRepository {
+  constructor(
+    private readonly db: Pick<
+      Prisma.TransactionClient,
+      "equipamento" | "movimentacao" | "lote"
+    > = prisma,
+  ) {}
+
   async buscarPorId(id: string): Promise<Equipamento | null> {
-    const row = await prisma.equipamento.findFirst({
+    const row = await this.db.equipamento.findFirst({
       where: { id, excluidoEm: null },
       include: equipamentoCompleto,
     });
@@ -51,7 +58,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   }
 
   async listarMovimentacoes(equipamentoId: string): Promise<Movimentacao[]> {
-    const rows = await prisma.movimentacao.findMany({
+    const rows = await this.db.movimentacao.findMany({
       where: { equipamentoId },
       orderBy: { dataHora: "asc" },
     });
@@ -59,7 +66,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   }
 
   async buscarPorIdIncluindoExcluido(id: string): Promise<Equipamento | null> {
-    const row = await prisma.equipamento.findUnique({
+    const row = await this.db.equipamento.findUnique({
       where: { id },
       include: equipamentoCompleto,
     });
@@ -67,7 +74,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   }
 
   async listar(): Promise<Equipamento[]> {
-    const rows = await prisma.equipamento.findMany({
+    const rows = await this.db.equipamento.findMany({
       where: { excluidoEm: null },
       include: equipamentoCompleto,
       orderBy: [{ loteId: "asc" }, { posicaoNoLote: "asc" }],
@@ -76,12 +83,22 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   }
 
   async criar(equipamento: Equipamento): Promise<Equipamento> {
-    const data = equipamento.toPrisma();
-    const row = await prisma.equipamento.create({
+    const dados = equipamento.toPrisma();
+    const row = await this.db.equipamento.create({
       data: {
-        ...data,
+        id: dados.id,
+        codigoBarrasInterno: dados.codigoBarrasInterno,
+        tipo: dados.tipo,
+        marca: dados.marca,
+        modelo: dados.modelo,
+        anoFabricacao: dados.anoFabricacao,
+        estadoFisico: dados.estadoFisico,
+        pesoQuilogramas: dados.pesoQuilogramas,
+        loteId: dados.loteId,
+        posicaoNoLote: dados.posicaoNoLote,
+        statusRastreamento: dados.statusRastreamento,
         excluidoEm: null,
-      } as unknown as Prisma.EquipamentoUncheckedCreateInput,
+      },
       include: equipamentoCompleto,
     });
     return mapEquipamento(row);
@@ -92,7 +109,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
     versao: number,
   ): Promise<Equipamento | null> {
     const data = equipamento.toPrisma();
-    const result = await prisma.equipamento.updateMany({
+    const result = await this.db.equipamento.updateMany({
       where: { id: equipamento.id, versao, excluidoEm: null },
       data: {
         estadoFisico: data.estadoFisico,
@@ -105,21 +122,21 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
 
   async criarMovimentacao(movimentacao: Movimentacao): Promise<Movimentacao> {
     const data = movimentacao.toPrisma();
-    const row = await prisma.movimentacao.create({
+    const row = await this.db.movimentacao.create({
       data: data as Prisma.MovimentacaoUncheckedCreateInput,
     });
     return Movimentacao.reconstituir(row as MovimentacaoPersistida);
   }
 
   async obterEstadoExclusao(id: string): Promise<EstadoExclusao | null> {
-    return prisma.equipamento.findUnique({
+    return this.db.equipamento.findUnique({
       where: { id },
       select: { id: true, excluidoEm: true, versao: true },
     });
   }
 
   async excluir(id: string, versao: number, data: Date): Promise<boolean> {
-    const result = await prisma.equipamento.updateMany({
+    const result = await this.db.equipamento.updateMany({
       where: { id, versao, excluidoEm: null },
       data: { excluidoEm: data, versao: { increment: 1 } },
     });
@@ -127,7 +144,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   }
 
   async reativar(id: string, versao: number): Promise<boolean> {
-    const result = await prisma.equipamento.updateMany({
+    const result = await this.db.equipamento.updateMany({
       where: { id, versao, excluidoEm: { not: null } },
       data: { excluidoEm: null, versao: { increment: 1 } },
     });
@@ -135,10 +152,10 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   }
 
   async loteAtivo(id: string): Promise<boolean> {
-    return (await prisma.lote.count({ where: { id, excluidoEm: null } })) > 0;
+    return (await this.db.lote.count({ where: { id, excluidoEm: null } })) > 0;
   }
 
   contar(): Promise<number> {
-    return prisma.equipamento.count({ where: { excluidoEm: null } });
+    return this.db.equipamento.count({ where: { excluidoEm: null } });
   }
 }

@@ -39,6 +39,7 @@ export class UsuarioService {
   async deletar(id: string, versao: number, ator: { id: string; usuario: string }) {
     const removido = await this.repository.transacao(async repo => {
       const atual = await this.obter(repo, id, versao);
+      if (await repo.possuiHistoricoJournal(id)) throw new ErroConflito("Usuário possui histórico no journal. Inative a conta para preservar a trilha de auditoria.");
       if (atual.ativo && atual.papel === PapelUsuario.ADMINISTRADOR && await repo.contarAdministradoresAtivos() <= 1) throw new ErroRegraNegocio("Não é possível remover o último administrador ativo.");
       if (!await repo.deletar(id, versao)) throw new ErroConflito("Conflito de versão do usuário.");
       return this.dtoSeguro(atual);

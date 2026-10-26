@@ -89,7 +89,7 @@ model JournalTransacao {
   usuarioId          String?
   usuarioResponsavel String
 
-  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
 
   @@index([timestamp])
   @@index([entidade, timestamp])
@@ -136,9 +136,9 @@ model Contrato {
   valorMensal         Decimal            @db.Decimal(12, 2)
   renovacaoAutomatica Boolean
   versao              Int                @default(1)
-  excluidoEm DateTime?
+  excluidoEm          DateTime?
 
-  organizacaoId String      @unique
+  organizacaoId String
   organizacao   Organizacao @relation(fields: [organizacaoId], references: [id])
 }
 
@@ -157,7 +157,7 @@ model Equipamento {
   loteId              String
   statusRastreamento  StatusRastreamento
   versao              Int                @default(1)
-  excluidoEm DateTime?
+  excluidoEm          DateTime?
 
   lote Lote @relation(fields: [loteId], references: [id])
 
@@ -175,7 +175,7 @@ model Lote {
   statusProcessamento StatusLote
   observacoes         String?
   versao              Int           @default(1)
-  excluidoEm DateTime?
+  excluidoEm          DateTime?
 
   organizacao Organizacao @relation(fields: [organizacaoId], references: [id])
 
@@ -183,17 +183,17 @@ model Lote {
 }
 
 model Organizacao {
-  id                String   @id
+  id                String    @id
   razaoSocial       String
-  cnpj              String   @unique
+  cnpj              String    @unique
   inscricaoEstadual String
   enderecoCompleto  String
   telefone          String
   email             String
-  dataCadastro      DateTime @default(now())
-  excluidoEm DateTime?
-  versao            Int      @default(1)
+  dataCadastro      DateTime  @default(now())
+  excluidoEm        DateTime?
+  versao            Int       @default(1)
 
-  contratoVigente Contrato?
+  contratoVigente Contrato[]
   lotes           Lote[]
 }

@@ -8,7 +8,8 @@ import type {
 import { ErroValidacao } from "@/shared/errors/DomainError.js";
 export class PrismaJournalWriter implements JournalWriter {
   constructor(private readonly repository: JournalTransacaoRepository) {}
-  async registrar(dados: NovaJournalTransacao): Promise<void> {
+
+  private preparar(dados: NovaJournalTransacao): JournalTransacaoRecord {
     if (
       !dados.operacao.trim() ||
       !dados.entidade.trim() ||
@@ -18,10 +19,14 @@ export class PrismaJournalWriter implements JournalWriter {
         "A operação, entidade e usuário responsável são obrigatórios no journal.",
       );
     }
+
     const timestamp = dados.timestamp ?? new Date();
-    if (Number.isNaN(timestamp.getTime()))
+
+    if (Number.isNaN(timestamp.getTime())) {
       throw new ErroValidacao("A data da transação do journal é inválida.");
-    const registro: JournalTransacaoRecord = {
+    }
+
+    return {
       id: dados.id ?? randomUUID(),
       timestamp,
       operacao: dados.operacao.trim(),
@@ -31,7 +36,10 @@ export class PrismaJournalWriter implements JournalWriter {
       usuarioId: dados.usuarioId ?? null,
       usuarioResponsavel: dados.usuarioResponsavel.trim(),
     };
-    await this.repository.criar(registro);
+  }
+
+  async registrar(dados: NovaJournalTransacao): Promise<void> {
+    await this.repository.criar(this.preparar(dados));
   }
 }
 

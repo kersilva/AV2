@@ -37,9 +37,9 @@ export class Contrato {
       Number.isNaN(dados.dataVencimento.getTime())
     )
       throw new ErroValidacao("As datas do contrato são inválidas.");
-    if (dados.dataVencimento < dados.dataAssinatura)
+    if (dados.dataVencimento <= dados.dataAssinatura)
       throw new ErroRegraNegocio(
-        "O vencimento não pode ser anterior à assinatura.",
+        "O vencimento deve ser posterior à assinatura.",
       );
     if (!Number.isFinite(dados.valorMensal) || dados.valorMensal <= 0)
       throw new ErroValidacao("O valor mensal deve ser positivo.");

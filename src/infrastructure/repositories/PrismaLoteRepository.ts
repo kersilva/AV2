@@ -12,20 +12,31 @@ import type { EstadoExclusao } from "@domain/repositories/SoftDeleteRepository.j
 import { prisma } from "@infra/database.js";
 
 function mapLote(row: any): Lote {
-  const equipamentos = row.equipamentos.map((item: any) => Equipamento.reconstituir({
-    id: item.id, codigoBarrasInterno: item.codigoBarrasInterno,
-    tipo: item.tipo as TipoEquipamento, marca: item.marca, modelo: item.modelo,
-    anoFabricacao: item.anoFabricacao, estadoFisico: item.estadoFisico as EstadoFisico,
-    pesoQuilogramas: Number(item.pesoQuilogramas), loteId: item.loteId,
-    posicaoNoLote: item.posicaoNoLote,
-    statusRastreamento: item.statusRastreamento as StatusRastreamento,
-    versao: item.versao,
-  }));
+  const equipamentos = row.equipamentos.map((item: any) =>
+    Equipamento.reconstituir({
+      id: item.id,
+      codigoBarrasInterno: item.codigoBarrasInterno,
+      tipo: item.tipo as TipoEquipamento,
+      marca: item.marca,
+      modelo: item.modelo,
+      anoFabricacao: item.anoFabricacao,
+      estadoFisico: item.estadoFisico as EstadoFisico,
+      pesoQuilogramas: Number(item.pesoQuilogramas),
+      loteId: item.loteId,
+      posicaoNoLote: item.posicaoNoLote,
+      statusRastreamento: item.statusRastreamento as StatusRastreamento,
+      versao: item.versao,
+    }),
+  );
   const lote: LotePersistido = {
-    id: row.id, dataEntrada: row.dataEntrada, organizacaoId: row.organizacaoId,
-    notaFiscal: row.notaFiscal, transportadora: row.transportadora,
+    id: row.id,
+    dataEntrada: row.dataEntrada,
+    organizacaoId: row.organizacaoId,
+    notaFiscal: row.notaFiscal,
+    transportadora: row.transportadora,
     statusProcessamento: row.statusProcessamento as StatusLote,
-    observacoes: row.observacoes, versao: row.versao,
+    observacoes: row.observacoes,
+    versao: row.versao,
   };
   return Lote.reconstituir(lote, equipamentos);
 }
@@ -34,21 +45,35 @@ const include = { equipamentos: { where: { excluidoEm: null } } } as const;
 
 export class PrismaLoteRepository implements ILoteRepository {
   async buscarPorId(id: string): Promise<Lote | null> {
-    const row = await prisma.lote.findFirst({ where: { id, excluidoEm: null }, include });
+    const row = await prisma.lote.findFirst({
+      where: { id, excluidoEm: null },
+      include,
+    });
     return row ? mapLote(row) : null;
   }
 
   async listar(): Promise<Lote[]> {
     const rows = await prisma.lote.findMany({
-      where: { excluidoEm: null }, include, orderBy: { dataEntrada: "desc" },
+      where: { excluidoEm: null },
+      include,
+      orderBy: { dataEntrada: "desc" },
     });
     return rows.map(mapLote);
   }
 
   async criar(lote: Lote): Promise<Lote> {
-    const data = lote.toPrisma();
+    const dados = lote.toPrisma();
     const row = await prisma.lote.create({
-      data: { ...data, excluidoEm: null } as unknown as Prisma.LoteUncheckedCreateInput,
+      data: {
+        id: dados.id,
+        dataEntrada: dados.dataEntrada,
+        organizacaoId: dados.organizacaoId,
+        notaFiscal: dados.notaFiscal,
+        transportadora: dados.transportadora,
+        statusProcessamento: dados.statusProcessamento,
+        observacoes: dados.observacoes,
+        excluidoEm: null,
+      },
       include,
     });
     return mapLote(row);
@@ -58,13 +83,19 @@ export class PrismaLoteRepository implements ILoteRepository {
     const data = lote.toPrisma();
     const result = await prisma.lote.updateMany({
       where: { id: lote.id, versao, excluidoEm: null },
-      data: { statusProcessamento: data.statusProcessamento, versao: { increment: 1 } },
+      data: {
+        statusProcessamento: data.statusProcessamento,
+        versao: { increment: 1 },
+      },
     });
     return result.count ? this.buscarPorId(lote.id) : null;
   }
 
   async obterEstadoExclusao(id: string): Promise<EstadoExclusao | null> {
-    return prisma.lote.findUnique({ where: { id }, select: { id: true, excluidoEm: true, versao: true } });
+    return prisma.lote.findUnique({
+      where: { id },
+      select: { id: true, excluidoEm: true, versao: true },
+    });
   }
 
   async excluir(id: string, versao: number, data: Date): Promise<boolean> {
@@ -84,16 +115,25 @@ export class PrismaLoteRepository implements ILoteRepository {
   }
 
   async organizacaoAtiva(id: string): Promise<boolean> {
-    return (await prisma.organizacao.count({ where: { id, excluidoEm: null } })) > 0;
+    return (
+      (await prisma.organizacao.count({ where: { id, excluidoEm: null } })) > 0
+    );
   }
 
   async organizacaoIdDoLote(id: string): Promise<string | null> {
-    const lote = await prisma.lote.findUnique({ where: { id }, select: { organizacaoId: true } });
+    const lote = await prisma.lote.findUnique({
+      where: { id },
+      select: { organizacaoId: true },
+    });
     return lote?.organizacaoId ?? null;
   }
 
   async possuiEquipamentosAtivos(id: string): Promise<boolean> {
-    return (await prisma.equipamento.count({ where: { loteId: id, excluidoEm: null } })) > 0;
+    return (
+      (await prisma.equipamento.count({
+        where: { loteId: id, excluidoEm: null },
+      })) > 0
+    );
   }
 
   contar(): Promise<number> {
