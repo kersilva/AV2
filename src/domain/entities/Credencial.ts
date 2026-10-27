@@ -1,7 +1,7 @@
-import type { PapelUsuario } from "@domain/enums/PapelUsuario.js";
-import type { GeradorHash } from "@domain/services/GeradorHash.js";
-import { ValidadorSenha } from "@domain/validators/ValidadorSenha.js";
-import { ErroValidacao } from "@/shared/errors/DomainError.js";
+import type { PapelUsuario } from '@domain/enums/PapelUsuario.js';
+import type { GeradorHash } from '@domain/services/GeradorHash.js';
+import { ValidadorSenha } from '@domain/validators/ValidadorSenha.js';
+import { ErroValidacao } from '@/shared/errors/DomainError.js';
 
 export type CredencialPersistida = {
   id: string;
@@ -28,16 +28,13 @@ export class Credencial {
     private _ultimoAcesso: Date | null,
     private _papel: PapelUsuario,
     private _ativo: boolean,
-    private _versao: number,
+    private _versao: number
   ) {}
 
-  static async criar(
-    dados: NovaCredencial,
-    geradorHash: GeradorHash,
-  ): Promise<Credencial> {
+  static async criar(dados: NovaCredencial, geradorHash: GeradorHash): Promise<Credencial> {
     const usuario = dados.usuario.trim();
     if (!dados.id.trim() || !usuario) {
-      throw new ErroValidacao("Informe um identificador e um usuário.");
+      throw new ErroValidacao('Informe um identificador e um usuário.');
     }
 
     const validadorSenha = new ValidadorSenha();
@@ -56,7 +53,7 @@ export class Credencial {
       dados.ultimoAcesso,
       dados.papel,
       dados.ativo,
-      dados.versao,
+      dados.versao
     );
   }
 
@@ -82,10 +79,7 @@ export class Credencial {
     return this._versao;
   }
 
-  async verificarSenha(
-    senha: string,
-    geradorHash: GeradorHash,
-  ): Promise<boolean> {
+  async verificarSenha(senha: string, geradorHash: GeradorHash): Promise<boolean> {
     return geradorHash.verificar(senha, this._hashSenha);
   }
 
@@ -128,5 +122,3 @@ export class Credencial {
     };
   }
 }
-
-

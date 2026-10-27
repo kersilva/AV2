@@ -1,15 +1,15 @@
-import type { Prisma } from "@/generated/prisma/client.js";
-import { StatusLote } from "@domain/enums/StatusLote.js";
-import { EstadoFisico } from "@domain/enums/EstadoFisico.js";
-import { StatusRastreamento } from "@domain/enums/StatusRastreamento.js";
-import { TipoEquipamento } from "@domain/enums/TipoEquipamento.js";
-import { Equipamento } from "@domain/entities/Equipamento.js";
-import type { EquipamentoPersistido } from "@domain/entities/Equipamento.js";
-import { Lote } from "@domain/entities/Lote.js";
-import type { LotePersistido } from "@domain/entities/Lote.js";
-import type { LoteRepository as ILoteRepository } from "@domain/repositories/LoteRepository.js";
-import type { EstadoExclusao } from "@domain/repositories/SoftDeleteRepository.js";
-import { prisma } from "@infra/database.js";
+import type { Prisma } from '@/generated/prisma/client.js';
+import { StatusLote } from '@domain/enums/StatusLote.js';
+import { EstadoFisico } from '@domain/enums/EstadoFisico.js';
+import { StatusRastreamento } from '@domain/enums/StatusRastreamento.js';
+import { TipoEquipamento } from '@domain/enums/TipoEquipamento.js';
+import { Equipamento } from '@domain/entities/Equipamento.js';
+import type { EquipamentoPersistido } from '@domain/entities/Equipamento.js';
+import { Lote } from '@domain/entities/Lote.js';
+import type { LotePersistido } from '@domain/entities/Lote.js';
+import type { LoteRepository as ILoteRepository } from '@domain/repositories/LoteRepository.js';
+import type { EstadoExclusao } from '@domain/repositories/SoftDeleteRepository.js';
+import { prisma } from '@infra/database.js';
 
 function mapLote(row: any): Lote {
   const equipamentos = row.equipamentos.map((item: any) =>
@@ -26,7 +26,7 @@ function mapLote(row: any): Lote {
       posicaoNoLote: item.posicaoNoLote,
       statusRastreamento: item.statusRastreamento as StatusRastreamento,
       versao: item.versao,
-    }),
+    })
   );
   const lote: LotePersistido = {
     id: row.id,
@@ -44,8 +44,15 @@ function mapLote(row: any): Lote {
 const include = { equipamentos: { where: { excluidoEm: null } } } as const;
 
 export class PrismaLoteRepository implements ILoteRepository {
+  constructor(
+    private readonly db: Pick<
+      Prisma.TransactionClient,
+      'lote' | 'equipamento' | 'organizacao'
+    > = prisma
+  ) {}
+
   async buscarPorId(id: string): Promise<Lote | null> {
-    const row = await prisma.lote.findFirst({
+    const row = await this.db.lote.findFirst({
       where: { id, excluidoEm: null },
       include,
     });
@@ -53,17 +60,17 @@ export class PrismaLoteRepository implements ILoteRepository {
   }
 
   async listar(): Promise<Lote[]> {
-    const rows = await prisma.lote.findMany({
+    const rows = await this.db.lote.findMany({
       where: { excluidoEm: null },
       include,
-      orderBy: { dataEntrada: "desc" },
+      orderBy: { dataEntrada: 'desc' },
     });
     return rows.map(mapLote);
   }
 
   async criar(lote: Lote): Promise<Lote> {
     const dados = lote.toPrisma();
-    const row = await prisma.lote.create({
+    const row = await this.db.lote.create({
       data: {
         id: dados.id,
         dataEntrada: dados.dataEntrada,
@@ -81,7 +88,7 @@ export class PrismaLoteRepository implements ILoteRepository {
 
   async salvar(lote: Lote, versao: number): Promise<Lote | null> {
     const data = lote.toPrisma();
-    const result = await prisma.lote.updateMany({
+    const result = await this.db.lote.updateMany({
       where: { id: lote.id, versao, excluidoEm: null },
       data: {
         statusProcessamento: data.statusProcessamento,
@@ -92,14 +99,14 @@ export class PrismaLoteRepository implements ILoteRepository {
   }
 
   async obterEstadoExclusao(id: string): Promise<EstadoExclusao | null> {
-    return prisma.lote.findUnique({
+    return this.db.lote.findUnique({
       where: { id },
       select: { id: true, excluidoEm: true, versao: true },
     });
   }
 
   async excluir(id: string, versao: number, data: Date): Promise<boolean> {
-    const result = await prisma.lote.updateMany({
+    const result = await this.db.lote.updateMany({
       where: { id, versao, excluidoEm: null },
       data: { excluidoEm: data, versao: { increment: 1 } },
     });
@@ -107,7 +114,7 @@ export class PrismaLoteRepository implements ILoteRepository {
   }
 
   async reativar(id: string, versao: number): Promise<boolean> {
-    const result = await prisma.lote.updateMany({
+    const result = await this.db.lote.updateMany({
       where: { id, versao, excluidoEm: { not: null } },
       data: { excluidoEm: null, versao: { increment: 1 } },
     });
@@ -115,13 +122,11 @@ export class PrismaLoteRepository implements ILoteRepository {
   }
 
   async organizacaoAtiva(id: string): Promise<boolean> {
-    return (
-      (await prisma.organizacao.count({ where: { id, excluidoEm: null } })) > 0
-    );
+    return (await this.db.organizacao.count({ where: { id, excluidoEm: null } })) > 0;
   }
 
   async organizacaoIdDoLote(id: string): Promise<string | null> {
-    const lote = await prisma.lote.findUnique({
+    const lote = await this.db.lote.findUnique({
       where: { id },
       select: { organizacaoId: true },
     });
@@ -130,13 +135,13 @@ export class PrismaLoteRepository implements ILoteRepository {
 
   async possuiEquipamentosAtivos(id: string): Promise<boolean> {
     return (
-      (await prisma.equipamento.count({
+      (await this.db.equipamento.count({
         where: { loteId: id, excluidoEm: null },
       })) > 0
     );
   }
 
   contar(): Promise<number> {
-    return prisma.lote.count({ where: { excluidoEm: null } });
+    return this.db.lote.count({ where: { excluidoEm: null } });
   }
 }

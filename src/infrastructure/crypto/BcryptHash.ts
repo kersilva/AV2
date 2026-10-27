@@ -1,7 +1,7 @@
-import { createHash, scrypt, timingSafeEqual } from "node:crypto";
-import bcrypt from "bcryptjs";
-import type { GeradorHash } from "@domain/services/GeradorHash.js";
-import { ErroValidacao } from "@/shared/errors/DomainError.js";
+import { createHash, scrypt, timingSafeEqual } from 'node:crypto';
+import bcrypt from 'bcryptjs';
+import type { GeradorHash } from '@domain/services/GeradorHash.js';
+import { ErroValidacao } from '@/shared/errors/DomainError.js';
 
 const ROUNDS_BCRYPT = 12;
 const TAMANHO_HASH_SCRYPT = 64;
@@ -23,7 +23,7 @@ function comparar(esperado: Buffer, recebido: Buffer): boolean {
 export class BcryptHash implements GeradorHash {
   async gerar(senha: string): Promise<string> {
     if (bcrypt.truncates(senha)) {
-      throw new ErroValidacao("A senha não pode ultrapassar 72 bytes em UTF-8.");
+      throw new ErroValidacao('A senha não pode ultrapassar 72 bytes em UTF-8.');
     }
     return bcrypt.hash(senha, ROUNDS_BCRYPT);
   }
@@ -37,17 +37,17 @@ export class BcryptHash implements GeradorHash {
       }
     }
 
-    const [algoritmo, salt, valor] = hash.split("$");
+    const [algoritmo, salt, valor] = hash.split('$');
     if (!salt || !valor) return false;
 
-    if (algoritmo === "scrypt") {
-      const esperado = Buffer.from(valor, "hex");
+    if (algoritmo === 'scrypt') {
+      const esperado = Buffer.from(valor, 'hex');
       return comparar(esperado, await derivarScrypt(senha, salt));
     }
 
-    if (algoritmo === "sha256") {
-      const esperado = Buffer.from(valor, "hex");
-      const recebido = createHash("sha256").update(salt).update(senha).digest();
+    if (algoritmo === 'sha256') {
+      const esperado = Buffer.from(valor, 'hex');
+      const recebido = createHash('sha256').update(salt).update(senha).digest();
       return comparar(esperado, recebido);
     }
 

@@ -1,4 +1,4 @@
-import type { SoftDeleteRepository } from "@domain/repositories/SoftDeleteRepository.js";
+import type { SoftDeleteRepository } from '@domain/repositories/SoftDeleteRepository.js';
 
 export type OrganizacaoRegistro = {
   id: string;
@@ -15,13 +15,7 @@ export type OrganizacaoRegistro = {
 
 export type NovaOrganizacao = Pick<
   OrganizacaoRegistro,
-  | "id"
-  | "razaoSocial"
-  | "cnpj"
-  | "inscricaoEstadual"
-  | "enderecoCompleto"
-  | "telefone"
-  | "email"
+  'id' | 'razaoSocial' | 'cnpj' | 'inscricaoEstadual' | 'enderecoCompleto' | 'telefone' | 'email'
 >;
 
 export interface OrganizacaoRepository extends SoftDeleteRepository {
@@ -31,7 +25,7 @@ export interface OrganizacaoRepository extends SoftDeleteRepository {
   atualizar(
     id: string,
     versao: number,
-    dados: Partial<NovaOrganizacao>,
+    dados: Partial<NovaOrganizacao>
   ): Promise<OrganizacaoRegistro | null>;
   temVinculosAtivos(id: string): Promise<boolean>;
   contar(): Promise<number>;

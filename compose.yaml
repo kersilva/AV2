@@ -8,11 +8,11 @@ services:
       POSTGRES_PASSWORD: greencode_dev
       POSTGRES_DB: greencode
     ports:
-      - "5433:5432"
+      - '5433:5432'
     volumes:
       - greencode-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U greencode -d greencode"]
+      test: ['CMD-SHELL', 'pg_isready -U greencode -d greencode']
       interval: 5s
       timeout: 5s
       retries: 10

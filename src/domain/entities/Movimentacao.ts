@@ -1,4 +1,4 @@
-import { ErroValidacao } from "@/shared/errors/DomainError.js";
+import { ErroValidacao } from '@/shared/errors/DomainError.js';
 
 export type MovimentacaoPersistida = {
   id: string;
@@ -10,7 +10,7 @@ export type MovimentacaoPersistida = {
   observacao: string | null;
   versao: number;
 };
-export type NovaMovimentacao = Omit<MovimentacaoPersistida, "versao">;
+export type NovaMovimentacao = Omit<MovimentacaoPersistida, 'versao'>;
 
 export class Movimentacao {
   private constructor(
@@ -21,7 +21,7 @@ export class Movimentacao {
     private readonly _destino: string,
     private readonly _responsavel: string,
     private readonly _observacao: string | null,
-    private readonly _versao: number,
+    private readonly _versao: number
   ) {}
 
   static criar(dados: NovaMovimentacao): Movimentacao {
@@ -32,15 +32,13 @@ export class Movimentacao {
       !dados.responsavel.trim()
     ) {
       throw new ErroValidacao(
-        "Identificadores, destino e responsável são obrigatórios na movimentação.",
+        'Identificadores, destino e responsável são obrigatórios na movimentação.'
       );
     }
     if (Number.isNaN(dados.dataHora.getTime()))
-      throw new ErroValidacao("A data da movimentação é inválida.");
+      throw new ErroValidacao('A data da movimentação é inválida.');
     if (dados.origem.trim() && dados.origem.trim() === dados.destino.trim())
-      throw new ErroValidacao(
-        "A origem e o destino da movimentação devem ser diferentes.",
-      );
+      throw new ErroValidacao('A origem e o destino da movimentação devem ser diferentes.');
     return new Movimentacao(
       dados.id,
       dados.equipamentoId,
@@ -49,7 +47,7 @@ export class Movimentacao {
       dados.destino.trim(),
       dados.responsavel.trim(),
       dados.observacao ?? null,
-      1,
+      1
     );
   }
 
@@ -62,7 +60,7 @@ export class Movimentacao {
       dados.destino,
       dados.responsavel,
       dados.observacao,
-      dados.versao,
+      dados.versao
     );
   }
 

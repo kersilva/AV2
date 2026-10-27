@@ -1,11 +1,8 @@
-import { EstadoFisico } from "@domain/enums/EstadoFisico.js";
-import { StatusRastreamento } from "@domain/enums/StatusRastreamento.js";
-import { TipoEquipamento } from "@domain/enums/TipoEquipamento.js";
-import {
-  ErroRegraNegocio,
-  ErroValidacao,
-} from "@/shared/errors/DomainError.js";
-import { Movimentacao, type MovimentacaoPersistida } from "./Movimentacao.js";
+import { EstadoFisico } from '@domain/enums/EstadoFisico.js';
+import { StatusRastreamento } from '@domain/enums/StatusRastreamento.js';
+import { TipoEquipamento } from '@domain/enums/TipoEquipamento.js';
+import { ErroRegraNegocio, ErroValidacao } from '@/shared/errors/DomainError.js';
+import { Movimentacao, type MovimentacaoPersistida } from './Movimentacao.js';
 
 export type EquipamentoPersistido = {
   id: string;
@@ -22,10 +19,7 @@ export type EquipamentoPersistido = {
   versao: number;
 };
 
-export type NovoEquipamento = Omit<
-  EquipamentoPersistido,
-  "versao" | "statusRastreamento"
-> & {
+export type NovoEquipamento = Omit<EquipamentoPersistido, 'versao' | 'statusRastreamento'> & {
   statusRastreamento?: StatusRastreamento;
 };
 
@@ -53,7 +47,7 @@ export class Equipamento {
     private _posicaoNoLote: number,
     private _statusRastreamento: StatusRastreamento,
     private readonly _historicoMovimentacao: Movimentacao[],
-    private _versao: number,
+    private _versao: number
   ) {}
 
   static criar(dados: NovoEquipamento): Equipamento {
@@ -63,18 +57,16 @@ export class Equipamento {
       !dados.marca.trim() ||
       !dados.modelo.trim()
     ) {
-      throw new ErroValidacao("Preencha os dados obrigatórios do equipamento.");
+      throw new ErroValidacao('Preencha os dados obrigatórios do equipamento.');
     }
     if (!Number.isInteger(dados.anoFabricacao) || dados.anoFabricacao < 1900) {
-      throw new ErroValidacao("O ano de fabricação do equipamento é inválido.");
+      throw new ErroValidacao('O ano de fabricação do equipamento é inválido.');
     }
     if (!Number.isFinite(dados.pesoQuilogramas) || dados.pesoQuilogramas <= 0) {
-      throw new ErroValidacao("O peso do equipamento deve ser positivo.");
+      throw new ErroValidacao('O peso do equipamento deve ser positivo.');
     }
     if (!Number.isInteger(dados.posicaoNoLote) || dados.posicaoNoLote < 1) {
-      throw new ErroValidacao(
-        "A posição do equipamento no lote deve ser positiva.",
-      );
+      throw new ErroValidacao('A posição do equipamento no lote deve ser positiva.');
     }
     return new Equipamento(
       dados.id,
@@ -89,14 +81,11 @@ export class Equipamento {
       dados.posicaoNoLote,
       dados.statusRastreamento ?? StatusRastreamento.AGUARDANDO_TRIAGEM,
       [],
-      1,
+      1
     );
   }
 
-  static reconstituir(
-    dados: EquipamentoPersistido,
-    historico: Movimentacao[] = [],
-  ): Equipamento {
+  static reconstituir(dados: EquipamentoPersistido, historico: Movimentacao[] = []): Equipamento {
     return new Equipamento(
       dados.id,
       dados.codigoBarrasInterno,
@@ -110,7 +99,7 @@ export class Equipamento {
       dados.posicaoNoLote,
       dados.statusRastreamento,
       [...historico],
-      dados.versao,
+      dados.versao
     );
   }
 
@@ -157,10 +146,10 @@ export class Equipamento {
   atualizarEstadoFisico(novoEstado: EstadoFisico, justificativa: string): void {
     const anterior = ORDEM_ESTADO.indexOf(this._estadoFisico);
     const novo = ORDEM_ESTADO.indexOf(novoEstado);
-    if (novo < 0) throw new ErroValidacao("Estado físico inválido.");
+    if (novo < 0) throw new ErroValidacao('Estado físico inválido.');
     if (novo >= anterior + 2 && !justificativa.trim()) {
       throw new ErroRegraNegocio(
-        "É obrigatória justificativa para queda de duas categorias no estado físico.",
+        'É obrigatória justificativa para queda de duas categorias no estado físico.'
       );
     }
     this._estadoFisico = novoEstado;
@@ -168,20 +157,18 @@ export class Equipamento {
 
   atualizarStatus(novoStatus: StatusRastreamento, justificativa: string): void {
     if (!justificativa.trim())
-      throw new ErroValidacao("Informe a justificativa da mudança de status.");
+      throw new ErroValidacao('Informe a justificativa da mudança de status.');
     if (
       novoStatus === StatusRastreamento.AGUARDANDO_DESMONTE &&
       this._statusRastreamento !== StatusRastreamento.EM_TRIAGEM
     ) {
-      throw new ErroRegraNegocio(
-        "O equipamento só pode aguardar desmonte após a triagem.",
-      );
+      throw new ErroRegraNegocio('O equipamento só pode aguardar desmonte após a triagem.');
     }
     if (
       novoStatus === StatusRastreamento.EM_DESMONTE &&
       this._statusRastreamento !== StatusRastreamento.AGUARDANDO_DESMONTE
     ) {
-      throw new ErroRegraNegocio("O desmonte só pode começar após a triagem.");
+      throw new ErroRegraNegocio('O desmonte só pode começar após a triagem.');
     }
     this._statusRastreamento = novoStatus;
   }
@@ -193,7 +180,7 @@ export class Equipamento {
     observacao?: string;
     dataHora?: Date;
   }): Movimentacao {
-    const origem = this._historicoMovimentacao.at(-1)?.destino ?? "";
+    const origem = this._historicoMovimentacao.at(-1)?.destino ?? '';
     const movimentacao = Movimentacao.criar({
       id: dados.id,
       equipamentoId: this._id,
@@ -201,7 +188,7 @@ export class Equipamento {
       origem,
       destino: dados.destino,
       responsavel: dados.responsavel,
-      observacao: dados.observacao ?? "",
+      observacao: dados.observacao ?? '',
     });
     this._historicoMovimentacao.push(movimentacao);
     return movimentacao;

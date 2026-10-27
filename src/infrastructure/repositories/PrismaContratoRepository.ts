@@ -1,11 +1,12 @@
-import { Contrato } from "@domain/entities/Contrato.js";
-import type { ContratoPersistido } from "@domain/entities/Contrato.js";
-import type { ContratoRepository as IContratoRepository } from "@domain/repositories/ContratoRepository.js";
-import type { EstadoExclusao } from "@domain/repositories/SoftDeleteRepository.js";
-import { prisma } from "@infra/database.js";
+import { Contrato } from '@domain/entities/Contrato.js';
+import type { Prisma } from '@/generated/prisma/client.js';
+import type { ContratoPersistido } from '@domain/entities/Contrato.js';
+import type { ContratoRepository as IContratoRepository } from '@domain/repositories/ContratoRepository.js';
+import type { EstadoExclusao } from '@domain/repositories/SoftDeleteRepository.js';
+import { prisma } from '@infra/database.js';
 
 const incluirClausulas = {
-  clausulas: { orderBy: { ordem: "asc" as const } },
+  clausulas: { orderBy: { ordem: 'asc' as const } },
 } as const;
 
 function mapContrato(row: any): Contrato {
@@ -14,9 +15,7 @@ function mapContrato(row: any): Contrato {
     organizacaoId: row.organizacaoId,
     dataAssinatura: row.dataAssinatura,
     dataVencimento: row.dataVencimento,
-    clausulas: row.clausulas.map(
-      (clausula: { texto: string }) => clausula.texto,
-    ),
+    clausulas: row.clausulas.map((clausula: { texto: string }) => clausula.texto),
     valorMensal: Number(row.valorMensal),
     renovacaoAutomatica: row.renovacaoAutomatica,
     versao: row.versao,
@@ -26,8 +25,12 @@ function mapContrato(row: any): Contrato {
 }
 
 export class PrismaContratoRepository implements IContratoRepository {
+  constructor(
+    private readonly db: Pick<Prisma.TransactionClient, 'contrato' | 'organizacao'> = prisma
+  ) {}
+
   async buscarPorId(id: string): Promise<Contrato | null> {
-    const row = await prisma.contrato.findFirst({
+    const row = await this.db.contrato.findFirst({
       where: { id, excluidoEm: null },
       include: incluirClausulas,
     });
@@ -35,17 +38,17 @@ export class PrismaContratoRepository implements IContratoRepository {
   }
 
   async listar(): Promise<Contrato[]> {
-    const rows = await prisma.contrato.findMany({
+    const rows = await this.db.contrato.findMany({
       where: { excluidoEm: null },
       include: incluirClausulas,
-      orderBy: { dataAssinatura: "desc" },
+      orderBy: { dataAssinatura: 'desc' },
     });
     return rows.map(mapContrato);
   }
 
   async criar(contrato: Contrato): Promise<Contrato> {
     const dados = contrato.toPrisma();
-    const row = await prisma.contrato.create({
+    const row = await this.db.contrato.create({
       data: {
         id: dados.id,
         dataAssinatura: dados.dataAssinatura,
@@ -67,14 +70,14 @@ export class PrismaContratoRepository implements IContratoRepository {
   }
 
   async obterEstadoExclusao(id: string): Promise<EstadoExclusao | null> {
-    return prisma.contrato.findUnique({
+    return this.db.contrato.findUnique({
       where: { id },
       select: { id: true, excluidoEm: true, versao: true },
     });
   }
 
   async excluir(id: string, versao: number, data: Date): Promise<boolean> {
-    const result = await prisma.contrato.updateMany({
+    const result = await this.db.contrato.updateMany({
       where: { id, versao, excluidoEm: null },
       data: { excluidoEm: data, versao: { increment: 1 } },
     });
@@ -82,7 +85,7 @@ export class PrismaContratoRepository implements IContratoRepository {
   }
 
   async reativar(id: string, versao: number): Promise<boolean> {
-    const result = await prisma.contrato.updateMany({
+    const result = await this.db.contrato.updateMany({
       where: { id, versao, excluidoEm: { not: null } },
       data: { excluidoEm: null, versao: { increment: 1 } },
     });
@@ -90,13 +93,11 @@ export class PrismaContratoRepository implements IContratoRepository {
   }
 
   async organizacaoAtiva(id: string): Promise<boolean> {
-    return (
-      (await prisma.organizacao.count({ where: { id, excluidoEm: null } })) > 0
-    );
+    return (await this.db.organizacao.count({ where: { id, excluidoEm: null } })) > 0;
   }
 
   async organizacaoIdDoContrato(id: string): Promise<string | null> {
-    const contrato = await prisma.contrato.findUnique({
+    const contrato = await this.db.contrato.findUnique({
       where: { id },
       select: { organizacaoId: true },
     });
@@ -105,18 +106,14 @@ export class PrismaContratoRepository implements IContratoRepository {
 
   async existeAtivoParaOrganizacao(organizacaoId: string): Promise<boolean> {
     return (
-      (await prisma.contrato.count({
+      (await this.db.contrato.count({
         where: { organizacaoId, excluidoEm: null },
       })) > 0
     );
   }
 
-  async atualizarVencimento(
-    id: string,
-    versao: number,
-    novoVencimento: Date,
-  ): Promise<boolean> {
-    const result = await prisma.contrato.updateMany({
+  async atualizarVencimento(id: string, versao: number, novoVencimento: Date): Promise<boolean> {
+    const result = await this.db.contrato.updateMany({
       where: { id, versao, excluidoEm: null },
       data: { dataVencimento: novoVencimento, versao: { increment: 1 } },
     });
@@ -124,6 +121,6 @@ export class PrismaContratoRepository implements IContratoRepository {
   }
 
   contar(): Promise<number> {
-    return prisma.contrato.count({ where: { excluidoEm: null } });
+    return this.db.contrato.count({ where: { excluidoEm: null } });
   }
 }

@@ -7,30 +7,30 @@ export abstract class DomainError extends Error {
   }
 }
 export class ErroValidacao extends DomainError {
-  readonly codigo = "DADOS_INVALIDOS";
+  readonly codigo = 'DADOS_INVALIDOS';
   readonly statusHttp = 400;
 }
 export class ErroAutenticacao extends DomainError {
-  readonly codigo = "NAO_AUTENTICADO";
+  readonly codigo = 'NAO_AUTENTICADO';
   readonly statusHttp = 401;
 }
 export class ErroPermissao extends DomainError {
-  readonly codigo = "SEM_PERMISSAO";
+  readonly codigo = 'SEM_PERMISSAO';
   readonly statusHttp = 403;
 }
 export class ErroNaoEncontrado extends DomainError {
-  readonly codigo = "NAO_ENCONTRADO";
+  readonly codigo = 'NAO_ENCONTRADO';
   readonly statusHttp = 404;
 }
 export class ErroConflito extends DomainError {
-  readonly codigo = "CONFLITO";
+  readonly codigo = 'CONFLITO';
   readonly statusHttp = 409;
 }
 export class ErroRegraNegocio extends DomainError {
-  readonly codigo = "REGRA_NEGOCIO";
+  readonly codigo = 'REGRA_NEGOCIO';
   readonly statusHttp = 422;
 }
 export class ErroConfiguracao extends DomainError {
-  readonly codigo = "CONFIGURACAO_INVALIDA";
+  readonly codigo = 'CONFIGURACAO_INVALIDA';
   readonly statusHttp = 500;
 }

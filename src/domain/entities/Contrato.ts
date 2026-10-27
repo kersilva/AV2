@@ -1,7 +1,4 @@
-import {
-  ErroRegraNegocio,
-  ErroValidacao,
-} from "@/shared/errors/DomainError.js";
+import { ErroRegraNegocio, ErroValidacao } from '@/shared/errors/DomainError.js';
 
 export type ContratoPersistido = {
   id: string;
@@ -14,7 +11,7 @@ export type ContratoPersistido = {
   versao: number;
   excluidoEm: Date | null;
 };
-export type NovoContrato = Omit<ContratoPersistido, "versao" | "excluidoEm">;
+export type NovoContrato = Omit<ContratoPersistido, 'versao' | 'excluidoEm'>;
 
 export class Contrato {
   private constructor(
@@ -26,27 +23,23 @@ export class Contrato {
     private readonly _valorMensal: number,
     private readonly _renovacaoAutomatica: boolean,
     private _versao: number,
-    private _excluidoEm: Date | null,
+    private _excluidoEm: Date | null
   ) {}
 
   static criar(dados: NovoContrato): Contrato {
     if (!dados.id.trim() || !dados.organizacaoId.trim())
-      throw new ErroValidacao("Identificadores do contrato são obrigatórios.");
+      throw new ErroValidacao('Identificadores do contrato são obrigatórios.');
     if (
       Number.isNaN(dados.dataAssinatura.getTime()) ||
       Number.isNaN(dados.dataVencimento.getTime())
     )
-      throw new ErroValidacao("As datas do contrato são inválidas.");
+      throw new ErroValidacao('As datas do contrato são inválidas.');
     if (dados.dataVencimento <= dados.dataAssinatura)
-      throw new ErroRegraNegocio(
-        "O vencimento deve ser posterior à assinatura.",
-      );
+      throw new ErroRegraNegocio('O vencimento deve ser posterior à assinatura.');
     if (!Number.isFinite(dados.valorMensal) || dados.valorMensal <= 0)
-      throw new ErroValidacao("O valor mensal deve ser positivo.");
+      throw new ErroValidacao('O valor mensal deve ser positivo.');
     if (dados.clausulas.some((clausula) => !clausula.trim()))
-      throw new ErroValidacao(
-        "As cláusulas do contrato não podem estar vazias.",
-      );
+      throw new ErroValidacao('As cláusulas do contrato não podem estar vazias.');
     return new Contrato(
       dados.id,
       dados.organizacaoId,
@@ -56,7 +49,7 @@ export class Contrato {
       dados.valorMensal,
       dados.renovacaoAutomatica,
       1,
-      null,
+      null
     );
   }
 
@@ -70,7 +63,7 @@ export class Contrato {
       dados.valorMensal,
       dados.renovacaoAutomatica,
       dados.versao,
-      dados.excluidoEm,
+      dados.excluidoEm
     );
   }
 
@@ -108,14 +101,11 @@ export class Contrato {
   }
 
   renovar(novoVencimento: Date): void {
-    if (this._excluidoEm)
-      throw new ErroRegraNegocio("Contrato excluído não pode ser renovado.");
+    if (this._excluidoEm) throw new ErroRegraNegocio('Contrato excluído não pode ser renovado.');
     if (Number.isNaN(novoVencimento.getTime()))
-      throw new ErroValidacao("A nova data de vencimento é inválida.");
+      throw new ErroValidacao('A nova data de vencimento é inválida.');
     if (novoVencimento <= this._dataVencimento)
-      throw new ErroRegraNegocio(
-        "O novo vencimento deve ser posterior ao vencimento atual.",
-      );
+      throw new ErroRegraNegocio('O novo vencimento deve ser posterior ao vencimento atual.');
     this._dataVencimento = novoVencimento;
   }
 

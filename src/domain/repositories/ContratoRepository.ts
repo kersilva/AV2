@@ -1,5 +1,5 @@
-import { Contrato } from "@domain/entities/Contrato.js";
-import type { SoftDeleteRepository } from "@domain/repositories/SoftDeleteRepository.js";
+import { Contrato } from '@domain/entities/Contrato.js';
+import type { SoftDeleteRepository } from '@domain/repositories/SoftDeleteRepository.js';
 
 export interface ContratoRepository extends SoftDeleteRepository {
   buscarPorId(id: string): Promise<Contrato | null>;

@@ -1,6 +1,6 @@
-import { Equipamento } from "@domain/entities/Equipamento.js";
-import { Movimentacao } from "@domain/entities/Movimentacao.js";
-import type { SoftDeleteRepository } from "@domain/repositories/SoftDeleteRepository.js";
+import { Equipamento } from '@domain/entities/Equipamento.js';
+import { Movimentacao } from '@domain/entities/Movimentacao.js';
+import type { SoftDeleteRepository } from '@domain/repositories/SoftDeleteRepository.js';
 
 export interface EquipamentoRepository extends SoftDeleteRepository {
   buscarPorId(id: string): Promise<Equipamento | null>;

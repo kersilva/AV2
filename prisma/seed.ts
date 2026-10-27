@@ -16,6 +16,7 @@ import { PrismaLoteRepository } from "../src/infrastructure/repositories/PrismaL
 import { PrismaEquipamentoRepository } from "../src/infrastructure/repositories/PrismaEquipamentoRepository.js";
 import { PrismaConfiguracaoRepository } from "../src/infrastructure/repositories/PrismaConfiguracaoRepository.js";
 import { PrismaJournalWriter } from "../src/infrastructure/journal/PrismaJournalWriter.js";
+import { PrismaUnitOfWork } from "../src/infrastructure/PrismaUnitOfWork.js";
 import { BcryptHash } from "../src/infrastructure/crypto/BcryptHash.js";
 import { UsuarioService } from "../src/modules/usuario/UsuarioService.js";
 import { OrganizacaoService } from "../src/modules/organizacao/OrganizacaoService.js";
@@ -39,27 +40,28 @@ if (process.env.NODE_ENV === "production" && !process.env.SEED_PASSWORD) {
 
 const journalRepository = new PrismaJournalTransacaoRepository();
 const journalWriter = new PrismaJournalWriter(journalRepository);
+const unitOfWork = new PrismaUnitOfWork();
 const usuarioRepository = new PrismaUsuarioRepository();
 const loteRepository = new PrismaLoteRepository();
 const equipamentoRepository = new PrismaEquipamentoRepository();
 const usuarioService = new UsuarioService(
   usuarioRepository,
   new BcryptHash(),
-  journalWriter,
+  unitOfWork,
 );
 const organizacaoService = new OrganizacaoService(
   new PrismaOrganizacaoRepository(),
-  journalWriter,
+  unitOfWork,
 );
-const loteService = new LoteService(loteRepository, journalWriter);
+const loteService = new LoteService(loteRepository, unitOfWork);
 const equipamentoService = new EquipamentoService(
   equipamentoRepository,
-  journalWriter,
+  unitOfWork,
 );
-const contratoService = new ContratoService(new PrismaContratoRepository(), journalWriter);
+const contratoService = new ContratoService(new PrismaContratoRepository(), unitOfWork);
 const configuracaoService = new ConfiguracaoService(
   new PrismaConfiguracaoRepository(),
-  journalWriter,
+  unitOfWork,
 );
 
 async function garantirUsuario(dados: DadosUsuarioSeed, ator?: Ator) {
@@ -343,7 +345,10 @@ async function garantirMovimentacoes(
 }
 
 async function garantirContrato(organizacaoId: string, ator: Ator) {
-  const contratoExistente = await prisma.contrato.findUnique({ where: { organizacaoId } });
+  const contratoExistente = await prisma.contrato.findFirst({
+    where: { organizacaoId },
+    orderBy: { dataAssinatura: "desc" },
+  });
   if (contratoExistente) {
     if (contratoExistente.excluidoEm) {
       await contratoService.reativar(contratoExistente.id, contratoExistente.versao, ator);

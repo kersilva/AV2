@@ -1,11 +1,12 @@
 import type {
   UsuarioAutorizacao,
   UsuarioRepository as IUsuarioRepository,
-} from "@domain/repositories/UsuarioRepository.js";
-import type { PapelUsuario } from "@domain/enums/PapelUsuario.js";
-import { Credencial } from "@domain/entities/Credencial.js";
-import type { CredencialPersistida } from "@domain/entities/Credencial.js";
-import { prisma } from "@infra/database.js";
+} from '@domain/repositories/UsuarioRepository.js';
+import type { PapelUsuario } from '@domain/enums/PapelUsuario.js';
+import { Credencial } from '@domain/entities/Credencial.js';
+import type { CredencialPersistida } from '@domain/entities/Credencial.js';
+import type { Prisma } from '@/generated/prisma/client.js';
+import { prisma } from '@infra/database.js';
 const selecao = {
   id: true,
   usuario: true,
@@ -19,13 +20,15 @@ function entidade(row: CredencialPersistida | null): Credencial | null {
   return row ? Credencial.reconstituir(row) : null;
 }
 export class PrismaUsuarioRepository implements IUsuarioRepository {
-  constructor(private readonly db: Pick<typeof prisma, "usuario" | "journalTransacao"> = prisma) {}
+  constructor(
+    private readonly db: Pick<Prisma.TransactionClient, 'usuario' | 'journalTransacao'> = prisma
+  ) {}
   async buscarPorId(id: string): Promise<Credencial | null> {
     return entidade(
       (await this.db.usuario.findUnique({
         where: { id },
         select: selecao,
-      })) as CredencialPersistida | null,
+      })) as CredencialPersistida | null
     );
   }
   async buscarPorUsuario(usuario: string): Promise<Credencial | null> {
@@ -33,28 +36,24 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
       (await this.db.usuario.findUnique({
         where: { usuario },
         select: selecao,
-      })) as CredencialPersistida | null,
+      })) as CredencialPersistida | null
     );
   }
-  
+
   async buscarDadosAutorizacao(id: string): Promise<UsuarioAutorizacao | null> {
     const usuario = await this.db.usuario.findUnique({
       where: { id },
       select: { ativo: true, papel: true },
     });
-    return usuario
-      ? { ativo: usuario.ativo, papel: usuario.papel as PapelUsuario }
-      : null;
+    return usuario ? { ativo: usuario.ativo, papel: usuario.papel as PapelUsuario } : null;
   }
 
   async listar(): Promise<Credencial[]> {
     const rows = await this.db.usuario.findMany({
       select: selecao,
-      orderBy: { usuario: "asc" },
+      orderBy: { usuario: 'asc' },
     });
-    return rows.map((row) =>
-      Credencial.reconstituir(row as CredencialPersistida),
-    );
+    return rows.map((row) => Credencial.reconstituir(row as CredencialPersistida));
   }
   async criar(credencial: Credencial): Promise<Credencial> {
     const row = await this.db.usuario.create({
@@ -70,10 +69,7 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
     });
     return Credencial.reconstituir(row as CredencialPersistida);
   }
-  async salvar(
-    credencial: Credencial,
-    versao: number,
-  ): Promise<Credencial | null> {
+  async salvar(credencial: Credencial, versao: number): Promise<Credencial | null> {
     const result = await this.db.usuario.updateMany({
       where: { id: credencial.id, versao },
       data: {
@@ -96,19 +92,10 @@ export class PrismaUsuarioRepository implements IUsuarioRepository {
   }
   contarAdministradoresAtivos(): Promise<number> {
     return this.db.usuario.count({
-      where: { ativo: true, papel: "ADMINISTRADOR" },
+      where: { ativo: true, papel: 'ADMINISTRADOR' },
     });
   }
   async possuiHistoricoJournal(id: string): Promise<boolean> {
     return (await this.db.journalTransacao.count({ where: { usuarioId: id } })) > 0;
-  }
-
-  transacao<T>(
-    operacao: (repository: IUsuarioRepository) => Promise<T>,
-  ): Promise<T> {
-    return prisma.$transaction(
-      (tx) => operacao(new PrismaUsuarioRepository(tx)),
-      { isolationLevel: "Serializable" },
-    );
   }
 }

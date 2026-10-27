@@ -17,13 +17,13 @@
 
     "paths": {
       "@/*": ["./src/*"],
-      
+
       // Src
       "@infra/*": ["./src/infrastructure/*"],
 
       // Domain
       "@domain/*": ["./src/domain/*"],
-      
+
       // Modules
       "@autenticacao/*": ["./src/modules/autenticacao/*"],
       "@configuracao/*": ["./src/modules/configuracao/*"],
@@ -33,7 +33,7 @@
       "@lote/*": ["./src/modules/lote/*"],
       "@organizacao/*": ["./src/modules/organizacao/*"],
       "@relatorio/*": ["./src/modules/relatorio/*"],
-      "@usuario/*": ["./src/modules/usuario/*"],
+      "@usuario/*": ["./src/modules/usuario/*"]
     },
 
     // Other Outputs
@@ -64,5 +64,3 @@
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "dist-tests", "node_modules", "tests"]
 }
-
-

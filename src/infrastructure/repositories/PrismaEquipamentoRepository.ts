@@ -1,14 +1,14 @@
-import { Prisma } from "@/generated/prisma/client.js";
-import { EstadoFisico } from "@domain/enums/EstadoFisico.js";
-import { StatusRastreamento } from "@domain/enums/StatusRastreamento.js";
-import { TipoEquipamento } from "@domain/enums/TipoEquipamento.js";
-import { Equipamento } from "@domain/entities/Equipamento.js";
-import type { EquipamentoPersistido } from "@domain/entities/Equipamento.js";
-import { Movimentacao } from "@domain/entities/Movimentacao.js";
-import type { MovimentacaoPersistida } from "@domain/entities/Movimentacao.js";
-import type { EquipamentoRepository as IEquipamentoRepository } from "@domain/repositories/EquipamentoRepository.js";
-import type { EstadoExclusao } from "@domain/repositories/SoftDeleteRepository.js";
-import { prisma } from "@infra/database.js";
+import { Prisma } from '@/generated/prisma/client.js';
+import { EstadoFisico } from '@domain/enums/EstadoFisico.js';
+import { StatusRastreamento } from '@domain/enums/StatusRastreamento.js';
+import { TipoEquipamento } from '@domain/enums/TipoEquipamento.js';
+import { Equipamento } from '@domain/entities/Equipamento.js';
+import type { EquipamentoPersistido } from '@domain/entities/Equipamento.js';
+import { Movimentacao } from '@domain/entities/Movimentacao.js';
+import type { MovimentacaoPersistida } from '@domain/entities/Movimentacao.js';
+import type { EquipamentoRepository as IEquipamentoRepository } from '@domain/repositories/EquipamentoRepository.js';
+import type { EstadoExclusao } from '@domain/repositories/SoftDeleteRepository.js';
+import { prisma } from '@infra/database.js';
 
 function mapMovimentacao(row: MovimentacaoPersistida): Movimentacao {
   return Movimentacao.reconstituir(row);
@@ -31,22 +31,20 @@ function mapEquipamento(row: any): Equipamento {
   };
   return Equipamento.reconstituir(
     data,
-    (row.historicoMovimentacao ?? []).map((item: MovimentacaoPersistida) =>
-      mapMovimentacao(item),
-    ),
+    (row.historicoMovimentacao ?? []).map((item: MovimentacaoPersistida) => mapMovimentacao(item))
   );
 }
 
 const equipamentoCompleto = {
-  historicoMovimentacao: { orderBy: { dataHora: "asc" } },
+  historicoMovimentacao: { orderBy: { dataHora: 'asc' } },
 } as const;
 
 export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   constructor(
     private readonly db: Pick<
       Prisma.TransactionClient,
-      "equipamento" | "movimentacao" | "lote"
-    > = prisma,
+      'equipamento' | 'movimentacao' | 'lote'
+    > = prisma
   ) {}
 
   async buscarPorId(id: string): Promise<Equipamento | null> {
@@ -60,7 +58,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
   async listarMovimentacoes(equipamentoId: string): Promise<Movimentacao[]> {
     const rows = await this.db.movimentacao.findMany({
       where: { equipamentoId },
-      orderBy: { dataHora: "asc" },
+      orderBy: { dataHora: 'asc' },
     });
     return rows.map((row) => mapMovimentacao(row as MovimentacaoPersistida));
   }
@@ -77,7 +75,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
     const rows = await this.db.equipamento.findMany({
       where: { excluidoEm: null },
       include: equipamentoCompleto,
-      orderBy: [{ loteId: "asc" }, { posicaoNoLote: "asc" }],
+      orderBy: [{ loteId: 'asc' }, { posicaoNoLote: 'asc' }],
     });
     return rows.map(mapEquipamento);
   }
@@ -104,10 +102,7 @@ export class PrismaEquipamentoRepository implements IEquipamentoRepository {
     return mapEquipamento(row);
   }
 
-  async salvar(
-    equipamento: Equipamento,
-    versao: number,
-  ): Promise<Equipamento | null> {
+  async salvar(equipamento: Equipamento, versao: number): Promise<Equipamento | null> {
     const data = equipamento.toPrisma();
     const result = await this.db.equipamento.updateMany({
       where: { id: equipamento.id, versao, excluidoEm: null },

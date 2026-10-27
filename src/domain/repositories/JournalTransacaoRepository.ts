@@ -8,7 +8,10 @@ export type JournalTransacaoRecord = {
   usuarioId: string | null;
   usuarioResponsavel: string;
 };
-export type NovaJournalTransacao = Omit<JournalTransacaoRecord, "id" | "timestamp" | "dadosAntes" | "dadosDepois" | "usuarioId"> & {
+export type NovaJournalTransacao = Omit<
+  JournalTransacaoRecord,
+  'id' | 'timestamp' | 'dadosAntes' | 'dadosDepois' | 'usuarioId'
+> & {
   id?: string;
   timestamp?: Date;
   dadosAntes?: unknown;

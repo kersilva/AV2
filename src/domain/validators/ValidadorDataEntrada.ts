@@ -1,8 +1,8 @@
-import { Validador } from "./Validador.js";
+import { Validador } from './Validador.js';
 
 export class ValidadorDataEntrada extends Validador {
   override obterMensagemErro(): string {
-    return "A data de entrada deve estar entre hoje e os últimos 90 dias.";
+    return 'A data de entrada deve estar entre hoje e os últimos 90 dias.';
   }
 
   validar(valor: unknown): boolean {

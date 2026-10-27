@@ -1,9 +1,6 @@
-import { StatusLote } from "@domain/enums/StatusLote.js";
-import {
-  ErroRegraNegocio,
-  ErroValidacao,
-} from "@/shared/errors/DomainError.js";
-import { Equipamento } from "./Equipamento.js";
+import { StatusLote } from '@domain/enums/StatusLote.js';
+import { ErroRegraNegocio, ErroValidacao } from '@/shared/errors/DomainError.js';
+import { Equipamento } from './Equipamento.js';
 
 export type LotePersistido = {
   id: string;
@@ -15,10 +12,7 @@ export type LotePersistido = {
   observacoes: string | null;
   versao: number;
 };
-export type NovoLote = Omit<
-  LotePersistido,
-  "versao" | "statusProcessamento"
-> & {
+export type NovoLote = Omit<LotePersistido, 'versao' | 'statusProcessamento'> & {
   statusProcessamento?: StatusLote;
   observacoes?: string | null;
 };
@@ -40,7 +34,7 @@ export class Lote {
     private readonly _equipamentos: Equipamento[],
     private _statusProcessamento: StatusLote,
     private readonly _observacoes: string | null,
-    private _versao: number,
+    private _versao: number
   ) {}
 
   static criar(dados: NovoLote): Lote {
@@ -50,12 +44,10 @@ export class Lote {
       !dados.notaFiscal.trim() ||
       !dados.transportadora.trim()
     ) {
-      throw new ErroValidacao(
-        "Nota fiscal, transportadora e identificadores são obrigatórios.",
-      );
+      throw new ErroValidacao('Nota fiscal, transportadora e identificadores são obrigatórios.');
     }
     if (Number.isNaN(dados.dataEntrada.getTime()))
-      throw new ErroValidacao("Data de entrada inválida.");
+      throw new ErroValidacao('Data de entrada inválida.');
     return new Lote(
       dados.id,
       dados.dataEntrada,
@@ -65,14 +57,11 @@ export class Lote {
       [],
       dados.statusProcessamento ?? StatusLote.RECEBIDO,
       dados.observacoes ?? null,
-      1,
+      1
     );
   }
 
-  static reconstituir(
-    dados: LotePersistido,
-    equipamentos: Equipamento[] = [],
-  ): Lote {
+  static reconstituir(dados: LotePersistido, equipamentos: Equipamento[] = []): Lote {
     return new Lote(
       dados.id,
       dados.dataEntrada,
@@ -82,7 +71,7 @@ export class Lote {
       [...equipamentos],
       dados.statusProcessamento,
       dados.observacoes,
-      dados.versao,
+      dados.versao
     );
   }
 
@@ -116,16 +105,14 @@ export class Lote {
 
   adicionarEquipamento(equipamento: Equipamento): void {
     if (equipamento.loteId !== this._id)
-      throw new ErroRegraNegocio("O equipamento referencia outro lote.");
+      throw new ErroRegraNegocio('O equipamento referencia outro lote.');
     if (this._equipamentos.some((item) => item.id === equipamento.id))
-      throw new ErroRegraNegocio("O equipamento já foi adicionado ao lote.");
+      throw new ErroRegraNegocio('O equipamento já foi adicionado ao lote.');
     this._equipamentos.push(equipamento);
   }
 
   removerEquipamento(equipamentoId: string): boolean {
-    const index = this._equipamentos.findIndex(
-      (item) => item.id === equipamentoId,
-    );
+    const index = this._equipamentos.findIndex((item) => item.id === equipamentoId);
     if (index < 0) return false;
     this._equipamentos.splice(index, 1);
     return true;
@@ -133,15 +120,12 @@ export class Lote {
 
   processarTriagem(): void {
     const proximo = PROXIMO[this._statusProcessamento];
-    if (!proximo) throw new ErroRegraNegocio("O lote já está no estado final.");
+    if (!proximo) throw new ErroRegraNegocio('O lote já está no estado final.');
     this._statusProcessamento = proximo;
   }
 
   calcularPesoTotal(): number {
-    return this._equipamentos.reduce(
-      (total, item) => total + item.pesoQuilogramas,
-      0,
-    );
+    return this._equipamentos.reduce((total, item) => total + item.pesoQuilogramas, 0);
   }
 
   toPrisma(): LotePersistido {

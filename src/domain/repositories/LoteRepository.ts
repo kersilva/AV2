@@ -1,5 +1,5 @@
-import { Lote } from "@domain/entities/Lote.js";
-import type { SoftDeleteRepository } from "@domain/repositories/SoftDeleteRepository.js";
+import { Lote } from '@domain/entities/Lote.js';
+import type { SoftDeleteRepository } from '@domain/repositories/SoftDeleteRepository.js';
 
 export interface LoteRepository extends SoftDeleteRepository {
   buscarPorId(id: string): Promise<Lote | null>;
